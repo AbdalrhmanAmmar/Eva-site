@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 export default function MaintenanceContent() {
   const [text, setText] = useState('');
-  const fullText = 'الأمن والحماية';
+  const fullText = "ايفا العقارية"
   
   useEffect(() => {
     let i = 0;
@@ -68,6 +68,9 @@ export default function MaintenanceContent() {
       
       <p className="text-xl md:text-2xl font-medium text-primary h-8 mb-8">
         {text}<span className="animate-pulse">|</span>
+      </p>
+      <p className="text-xl md:text-2xl font-medium text-primary h-8 mb-8">
+        <span>امن وسلامه | تطوير عقاري | ادارة املاك</span>
       </p>
 
       <div className="max-w-2xl mx-auto">

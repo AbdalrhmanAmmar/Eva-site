@@ -45,7 +45,7 @@ export default function InfoClient() {
             />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">EVA</h1>
-          <p className="text-primary font-medium">الأمن والحماية</p>
+          <p className="text-primary font-medium">ايفا العقاريه</p>
         </motion.div>
 
         <div className="space-y-3">
