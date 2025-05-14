@@ -51,7 +51,7 @@ export default function MaintenancePage() {
           </div>
         </main>
         
-        <Footer />
+
       </div>
     </div>
   );
