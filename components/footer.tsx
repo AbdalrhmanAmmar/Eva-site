@@ -1,45 +1,55 @@
-"use client";
+// components/footer.tsx
+'use client';
 
 import { motion } from 'framer-motion';
-import { Twitter, Linkedin, Mail, Globe } from 'lucide-react';
+import { FaShieldAlt, FaLock, FaEye } from 'react-icons/fa';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-  
-  const socialLinks = [
-    { icon: Twitter, href: '#', label: 'تويتر' },
-    { icon: Linkedin, href: '#', label: 'لينكد إن' },
-    { icon: Mail, href: 'mailto:contact@eva-security.com', label: 'البريد الإلكتروني' },
-  ];
-
   return (
-    <motion.footer
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, delay: 0.8 }}
-      className="mt-12 py-6 border-t border-[#898989]/20"
+    <motion.footer 
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.8 }}
+      className="bg-black/50 backdrop-blur-lg border-t border-gray-800 py-8"
     >
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="text-[#898989] text-sm">
-          &copy; {currentYear} EVA للأمن والحماية. جميع الحقوق محفوظة.
-        </div>
-        
-        <div className="flex space-x-4">
-          {socialLinks.map((link, index) => (
-            <a
-              key={index}
-              href={link.href}
-              aria-label={link.label}
-              className="text-[#898989] hover:text-[#F2DF56] transition-colors p-2"
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-3"
+          >
+            <FaShieldAlt className="text-blue-400 text-2xl" />
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              EVA
+            </span>
+          </motion.div>
+          
+          <div className="flex gap-6">
+            <motion.a 
+              whileHover={{ y: -3 }}
+              href="#"
+              className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
             >
-              <link.icon size={18} />
-            </a>
-          ))}
+              <FaLock /> الخصوصية
+            </motion.a>
+            <motion.a 
+              whileHover={{ y: -3 }}
+              href="#"
+              className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+            >
+              <FaEye /> الشروط
+            </motion.a>
+          </div>
+          
+          <motion.p 
+            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-gray-400 text-sm"
+          >
+            © 2023 EVA. جميع الحقوق محفوظة.
+          </motion.p>
         </div>
-      </div>
-      
-      <div className="mt-4 text-xs text-center text-[#898989]">
-        <p>موقعنا قيد التطوير. للأمور العاجلة، يرجى التواصل معنا عبر البريد الإلكتروني.</p>
       </div>
     </motion.footer>
   );

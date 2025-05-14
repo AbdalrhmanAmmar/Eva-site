@@ -1,20 +1,77 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { Globe, Facebook, Instagram, Twitter, Snail as Snapchat, LinkedinIcon, Mail, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
+import {
+  Globe,
+  Facebook,
+  Instagram,
+  Twitter,
+  Mail,
+  Linkedin,
+  MessageSquareText, // تيك توك (لا يوجد أيقونة رسمية، هذا بديل مناسب)
+  PhoneCall,         // واتساب (بديل مناسب)
+  Ghost,             // سناب شات (أقرب شكل موجود)
+} from "lucide-react";
+
 const links = [
-  { icon: Globe, label: 'الموقع الإلكتروني', href: 'https://eva-security.com', color: 'bg-primary text-background' },
-  { icon: Facebook, label: 'فيسبوك', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: Instagram, label: 'انستغرام', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: Twitter, label: 'تويتر', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: Snapchat, label: 'سناب شات', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: MessageCircle, label: 'تيك توك', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: LinkedinIcon, label: 'لينكد إن', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: MessageCircle, label: 'واتساب', href: '#', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
-  { icon: Mail, label: 'البريد الإلكتروني', href: 'mailto:contact@eva-security.com', color: 'bg-secondary/10 border border-secondary/20 text-foreground' },
+  {
+    icon: Globe,
+    label: "الموقع الإلكتروني",
+    href: "https://eva-security.com",
+    color: "bg-primary text-background",
+  },
+  {
+    icon: Facebook,
+    label: "فيسبوك",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: Instagram,
+    label: "انستغرام",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: Twitter,
+    label: "تويتر",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: Ghost, // سناب شات
+    label: "سناب شات",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: MessageSquareText, // تيك توك
+    label: "تيك توك",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: Linkedin,
+    label: "لينكد إن",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: PhoneCall, // واتساب
+    label: "واتساب",
+    href: "#",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
+  {
+    icon: Mail,
+    label: "البريد الإلكتروني",
+    href: "mailto:contact@eva-security.com",
+    color: "bg-secondary/10 border border-secondary/20 text-foreground",
+  },
 ];
+
 
 export default function InfoClient() {
   return (
