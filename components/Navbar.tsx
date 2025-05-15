@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, UserCircle } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -61,6 +61,13 @@ export default function Navbar() {
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </Link>
               ))}
+              <Link
+                href="/auth"
+                className="flex items-center gap-2 text-white/90 hover:text-white transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
+              >
+                <UserCircle className="w-5 h-5" />
+                <span>تسجيل الدخول</span>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -99,6 +106,14 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 text-white/90 hover:text-white transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
+                >
+                  <UserCircle className="w-5 h-5" />
+                  <span>تسجيل الدخول</span>
+                </Link>
               </div>
             </div>
           </motion.div>
