@@ -30,7 +30,7 @@ const services = [
       "إعادة تطوير العقارات"
     ],
     image: "https://images.pexels.com/photos/323705/pexels-photo-323705.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    href: "/about"
+    href: "/real-estate"
   },
   {
     icon: ClipboardList,
@@ -43,7 +43,7 @@ const services = [
       "تحسين كفاءة التشغيل"
     ],
     image: "https://images.pexels.com/photos/7578939/pexels-photo-7578939.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    href: "/about"
+    href: "/property-management"
   }
 ];
 
