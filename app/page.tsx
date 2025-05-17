@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Shield, Building2, ClipboardList, CheckCircle2, ArrowRight, Package, Star, Users } from 'lucide-react';
+import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 
 const products = [
   {
