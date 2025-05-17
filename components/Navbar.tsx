@@ -107,12 +107,12 @@ export default function Navbar() {
                   </Link>
                 ))}
                 <Link
-                  href="/auth/login"
+                  href="auth/signup"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2 text-white/90 hover:text-white transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
                 >
                   <UserCircle className="w-5 h-5" />
-                  <span>تسجيل الدخول</span>
+                  <span> انشأ حساب</span>
                 </Link>
               </div>
             </div>
