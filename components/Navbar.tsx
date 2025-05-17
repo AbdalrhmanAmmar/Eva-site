@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X, UserCircle } from "lucide-react";
+import { ThemeToggle } from './Theme-toggle';
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -55,15 +56,16 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-white/90 hover:text-white transition-colors relative group py-2"
+                  className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
                 >
                   <span>{link.label}</span>
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </Link>
               ))}
+              <ThemeToggle />
               <Link
-                href="/auth"
-                className="flex items-center gap-2 text-white/90 hover:text-white transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
+                href="/auth/login"
+                className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
               >
                 <UserCircle className="w-5 h-5" />
                 <span>تسجيل الدخول</span>
@@ -71,16 +73,19 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white p-2"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+            <div className="md:hidden flex items-center gap-4">
+              <ThemeToggle />
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-foreground p-2"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </motion.nav>
@@ -101,18 +106,18 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-xl text-white/90 hover:text-white transition-colors"
+                    className="text-xl text-foreground/90 hover:text-foreground transition-colors"
                   >
                     {link.label}
                   </Link>
                 ))}
                 <Link
-                  href="auth/signup"
+                  href="/auth/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2 text-white/90 hover:text-white transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
+                  className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
                 >
                   <UserCircle className="w-5 h-5" />
-                  <span> انشأ حساب</span>
+                  <span>تسجيل الدخول</span>
                 </Link>
               </div>
             </div>
