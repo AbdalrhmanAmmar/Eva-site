@@ -68,7 +68,7 @@ const links = [
 export default function InfoClient() {
   return (
     <div className="min-h-screen bg-background py-12 px-4 relative overflow-hidden">
-      <HeroGeometric className="absolute inset-0 z-0" />
+      <HeroGeometric  />
       
       <div className="max-w-lg mx-auto relative z-10">
 
