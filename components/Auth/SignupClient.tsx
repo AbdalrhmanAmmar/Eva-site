@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SignupClient() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -15,6 +17,9 @@ export default function SignupClient() {
     e.preventDefault();
     // Handle signup logic here
     console.log("Signup form submitted:", { email, password, name });
+    
+    // Redirect to verification page
+    router.push("/auth/verify");
   };
 
   return (
