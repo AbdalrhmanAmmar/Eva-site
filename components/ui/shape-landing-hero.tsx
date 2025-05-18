@@ -83,7 +83,7 @@ function HeroGeometric({
 
 
 }) {
-    console.log(className)
+
     const fadeUpVariants = {
         hidden: { opacity: 0, y: 30 },
         visible: (i: number) => ({
