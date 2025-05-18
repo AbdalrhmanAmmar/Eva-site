@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { HeroGeometric } from '@/components/ui/shape-landing-hero';
 import { FaTiktok,FaWhatsapp,FaSnapchatGhost  } from "react-icons/fa";
 
 
@@ -17,6 +16,7 @@ import {
   PhoneCall,
   Ghost,
 } from "lucide-react";
+import { HeroGeometric } from './ui/shape-landing-hero';
 
 const links = [
 
