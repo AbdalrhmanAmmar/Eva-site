@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Shield, Building2, ClipboardList, CheckCircle2, ArrowRight, Package, Star, Users } from 'lucide-react';
 import { HeroGeometric } from '@/components/ui/shape-landing-hero';
+import MaintenancePage from '@/components/maintenance-page';
+import Chatbot from '@/components/chatbot/Chatbot';
 
 const products = [
   {
@@ -57,8 +59,12 @@ const stats = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
-      <HeroGeometric />
+    <div className="min-h-screen bg-background dark:bg-background-foreground">
+      <HeroGeometric 
+  title1="نحو مستقبل"
+  title2="أكثر أماناً وابتكاراً"
+  description="EVA تجمع بين تقنيات الحماية المتطورة والخبرات العقارية، لنقدم لك حلولاً شاملة ومتكاملة تبني الثقة وتحقق التميز."
+/>
 
       {/* الخدمات الرئيسية */}
       <section className="py-24 container mx-auto px-4">
@@ -305,6 +311,8 @@ export default function Home() {
           </Link>
         </motion.div>
       </section>
+            <Chatbot />
     </div>
+    
   );
 }

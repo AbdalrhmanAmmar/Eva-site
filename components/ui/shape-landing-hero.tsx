@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
 function ElegantShape({
     className,
@@ -72,14 +73,18 @@ function ElegantShape({
 
 function HeroGeometric({
     badge = "EVA",
-    title1 = "نحو مستقبل",
-    title2 = "أكثر أماناً وابتكاراً",
+    title1 ,
+    title2 ,
+     description,
+     children,
  
 
 }: {
     badge?: string;
     title1?: string;
     title2?: string;
+    description?:string;
+    children?:ReactNode
 
 
 }) {
@@ -98,7 +103,7 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">h
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background">
             <div className="absolute inset-0 bg-gradient-to-br from-[#F2DF56]/[0.05] via-transparent to-[#F2DF56]/[0.05] blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
@@ -187,8 +192,8 @@ function HeroGeometric({
                         animate="visible"
                     >
                         <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-                            EVA تجمع بين تقنيات الحماية المتطورة والخبرات العقارية، لنقدم لك حلولاً شاملة ومتكاملة تبني الثقة وتحقق التميز.
-                        </p>
+{description}                        </p>
+{children}
                     </motion.div>
                 </div>
             </div>

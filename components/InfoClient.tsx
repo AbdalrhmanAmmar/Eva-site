@@ -68,12 +68,11 @@ const links = [
 export default function InfoClient() {
   return (
     <div className="min-h-screen bg-background py-12 px-4 relative overflow-hidden">
-      <HeroGeometric  />
-      
-      <div className="max-w-lg mx-auto relative z-10">
+      <HeroGeometric >
+              <div className="max-w-lg mx-auto relative b-[500px] z-10">
 
 
-        <div className="space-y-3">
+        <div className="space-y-3 ">
           {links.map((link, index) => (
             <motion.a
               key={link.label}
@@ -98,6 +97,10 @@ export default function InfoClient() {
           تواصل معنا عبر منصاتنا الاجتماعية
         </motion.p>
       </div>
+
+      </HeroGeometric>
+      
+
     </div>
   );
 }
