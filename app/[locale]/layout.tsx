@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import TranslationsProvider from '@/i18n/TranslationsProvider';
 import i18nConfig from '@/i18n/i18nConfig';
 import { ILayout } from '@/interfaces/ILayout';
-import initTranslation from './i18n';
+import initTranslation from '../i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
