@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X, UserCircle } from "lucide-react";
 import { ThemeToggle } from './Theme-toggle';
+import LanguageChanger from "@/i18n/LanguageChanger";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -70,6 +71,7 @@ export default function Navbar() {
                 <UserCircle className="w-5 h-5" />
                 <span>تسجيل الدخول</span>
               </Link>
+              <LanguageChanger/>
             </div>
 
             {/* Mobile Menu Button */}
