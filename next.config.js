@@ -1,7 +1,6 @@
-/** @type {import('next').NextConfig} */
+// next.config.js
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true, // ✅ هذا السطر يضيف / في نهاية كل رابط لحل مشكلة /info
+  trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -14,6 +13,11 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  i18n: {
+    locales: ['ar', 'en'],
+    defaultLocale: 'ar',
+    localeDetection: true,
   },
 };
 
