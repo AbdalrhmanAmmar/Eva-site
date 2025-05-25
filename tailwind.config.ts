@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss"
 
 const config = {
   darkMode: ["class"],
@@ -8,6 +8,7 @@ const config = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
+  prefix: "",
   theme: {
     container: {
       center: true,
@@ -18,35 +19,45 @@ const config = {
     },
     extend: {
       colors: {
-        // 🌞 Light Mode Colors
-        background: "#FCF5DE",
-        foreground: "#193765",
+        background: "#1E1E1E",
+        foreground: "#FFFFFF",
+        border: "#898989",
+        input: "#898989",
+        ring: "#F2DF56",
         primary: {
-          DEFAULT: "#FF6F61",
-          foreground: "#FFFFFF",
+          DEFAULT: "#F2DF56",
+          foreground: "#1E1E1E",
         },
         secondary: {
-          DEFAULT: "#D4A5A5",
+          DEFAULT: "#898989",
           foreground: "#FFFFFF",
         },
-        border: "#E5E5E5",
-
-        // 🌙 Dark Mode Colors
-        dark: {
-          background: "#1A1A1A",
-          foreground: "#E0E0E0",
-          primary: "#FF6F61",
-          secondary: "#D4A5A5",
-          border: "#333333",
+        destructive: {
+          DEFAULT: "#FF0000",
+          foreground: "#FFFFFF",
         },
-
-        // إضافي - لألوان الشارت إن احتجت
+        muted: {
+          DEFAULT: "#898989",
+          foreground: "#FFFFFF",
+        },
+        accent: {
+          DEFAULT: "#F2DF56",
+          foreground: "#1E1E1E",
+        },
+        popover: {
+          DEFAULT: "#1E1E1E",
+          foreground: "#FFFFFF",
+        },
+        card: {
+          DEFAULT: "#1E1E1E",
+          foreground: "#FFFFFF",
+        },
         chart: {
-          1: "#FF6F61",
-          2: "#D4A5A5",
-          3: "#193765",
-          4: "#E5E5E5",
-          5: "#FCF5DE",
+          1: "#F2DF56",
+          2: "#898989",
+          3: "#1E1E1E",
+          4: "#FFFFFF",
+          5: "#F2DF56",
         }
       },
       borderRadius: {
@@ -71,6 +82,6 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+} satisfies Config
 
-export default config;
+export default config
