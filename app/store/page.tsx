@@ -1,4 +1,4 @@
-import StoreClient from "@/components/store/Storeclient";
+import StoreClient from "@/components/store/StoreClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
