@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Send, X, Loader2 } from "lucide-react";
+import { MessageSquare, Send, X, Loader2, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 interface Message {
   type: "user" | "bot";
@@ -32,7 +33,7 @@ export default function Chatbot() {
         ...prev,
         {
           type: "bot",
-          content: "شكراً لتواصلك معنا. سيقوم فريقنا بالرد عليك في أقرب وقت ممكن.",
+          content: "شكراً لتواصلك معنا. للحصول على مساعدة أكثر تفصيلاً، يرجى زيارة صفحة خدمة العملاء المتخصصة.",
         },
       ]);
       setIsLoading(false);
@@ -70,7 +71,7 @@ export default function Chatbot() {
               className="fixed bottom-6 left-6 w-[calc(100%-3rem)] md:w-[400px] bg-card border border-border/10 rounded-2xl shadow-xl z-50"
             >
               <div className="p-4 border-b border-border/10 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">المساعد الافتراضي</h3>
+                <h3 className="text-lg font-semibold">المساعد السريع</h3>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
@@ -79,7 +80,7 @@ export default function Chatbot() {
                 </button>
               </div>
 
-              <div className="h-[400px] overflow-y-auto p-4 space-y-4">
+              <div className="h-[300px] overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, index) => (
                   <motion.div
                     key={index}
@@ -111,8 +112,8 @@ export default function Chatbot() {
                 )}
               </div>
 
-              <form onSubmit={handleSubmit} className="p-4 border-t border-border/10">
-                <div className="flex gap-2">
+              <div className="p-4 border-t border-border/10 space-y-3">
+                <form onSubmit={handleSubmit} className="flex gap-2">
                   <input
                     type="text"
                     value={message}
@@ -127,8 +128,19 @@ export default function Chatbot() {
                   >
                     <Send className="w-5 h-5" />
                   </button>
-                </div>
-              </form>
+                </form>
+                
+                <Link href="/customer-service">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span>خدمة العملاء المتكاملة</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </Link>
+              </div>
             </motion.div>
           </>
         )}
