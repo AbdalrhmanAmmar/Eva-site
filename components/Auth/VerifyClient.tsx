@@ -12,7 +12,7 @@ import { ArrowRight, CheckCircle2, RefreshCw, Shield } from "lucide-react";
 import { authAPI } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 import LoadingButton from "@/components/ui/LoadingButton";
-import { VerifyOTPFormData, verifyOTPSchema } from "@/lib/validation/auth";
+import { VerifyOTPFormData, verifyOTPSchema } from "@/lib/validations/auth";
 
 export default function VerifyClient() {
   const router = useRouter();
