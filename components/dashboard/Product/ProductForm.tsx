@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   ImageIcon,
 } from "lucide-react";
-import { Product } from "@/stores/productsStore";
+import { Product } from "@/stores/ProductsStore";
 
 interface ProductFormProps {
   isOpen: boolean;
