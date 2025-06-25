@@ -1,11 +1,11 @@
-import PagesClient from "@/components/dashboard/PagesClient";
+import ProductsClient from "@/components/dashboard/Product/ProductsClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "EVA - إدارة الصفحات",
-  description: "إدارة وتتبع جميع صفحات الموقع",
+  title: "EVA - إدارة المنتجات",
+  description: "إدارة وتتبع جميع المنتجات في النظام",
 };
 
-export default function PagesPage() {
-  return <PagesClient />;
+export default function ProductsPage() {
+  return <ProductsClient />;
 }

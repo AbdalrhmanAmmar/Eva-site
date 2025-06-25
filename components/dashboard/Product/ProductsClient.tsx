@@ -30,6 +30,7 @@ import {
   User,
   BarChart3,
 } from "lucide-react";
+
 import ProductForm from "./ProductForm";
 import ProductStats from "./ProductStats";
 import { Product, useProductsStore } from "@/stores/ProductsStore";
@@ -433,7 +434,6 @@ export default function ProductsClient() {
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/10">
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <User className="w-3 h-3" />
-                      <span>{product.createdBy.name}</span>
                     </div>
                     <div className="flex gap-1">
                       <motion.button
