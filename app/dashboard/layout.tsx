@@ -10,11 +10,13 @@ import {
   FileText,
   Menu,
   X,
-  LogOut
+  LogOut,
+  BarChart3,
 } from "lucide-react";
 
 const sidebarItems = [
   { icon: Home, label: "الرئيسية", href: "/dashboard" },
+  { icon: BarChart3, label: "Pixel والتحليلات", href: "/dashboard/pixel" },
   { icon: Package, label: "المنتجات", href: "/dashboard/products" },
   { icon: Settings, label: "الخدمات", href: "/dashboard/services" },
   { icon: FileText, label: "الصفحات", href: "/dashboard/pages" },

@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, UserCircle } from "lucide-react";
+import { Menu, X, UserCircle, LogOut } from "lucide-react";
 import { ThemeToggle } from './Theme-toggle';
+import { useAuthStore } from "@/stores/authStore";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -16,6 +17,9 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+  console.log("User role:", user?.role);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +29,11 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -62,14 +71,55 @@ export default function Navbar() {
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </Link>
               ))}
+{user && (
+  user.role === 'admin' ? (
+    <Link
+      href="/admin"
+      className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
+    >
+      <span>لوحة التحكم</span>
+      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+    </Link>
+  ) : user.role === 'user' ? (
+    <Link
+      href="/user"
+      className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
+    >
+      <span>لوحة المستخدم</span>
+      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+    </Link>
+  ) : null
+)}
+
+      
               <ThemeToggle />
-              <Link
-                href="/auth/login"
-                className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
-              >
-                <UserCircle className="w-5 h-5" />
-                <span>تسجيل الدخول</span>
-              </Link>
+              
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors"
+                  >
+                    <UserCircle className="w-5 h-5" />
+                    <span>حسابي</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>تسجيل الخروج</span>
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
+                >
+                  <UserCircle className="w-5 h-5" />
+                  <span>تسجيل الدخول</span>
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -111,14 +161,35 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
-                >
-                  <UserCircle className="w-5 h-5" />
-                  <span>تسجيل الدخول</span>
-                </Link>
+                
+                {user ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 text-xl text-foreground/90 hover:text-foreground transition-colors"
+                    >
+                      <UserCircle className="w-5 h-5" />
+                      <span>حسابي</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 text-xl text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>تسجيل الخروج</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 text-xl text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-6 py-3 rounded-full"
+                  >
+                    <UserCircle className="w-5 h-5" />
+                    <span>تسجيل الدخول</span>
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

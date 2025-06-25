@@ -1,48 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Lock, UserPlus, User, AlertCircle } from "lucide-react";
+import { Lock, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function SignupClient() {
+export default function ResetPasswordClient() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
     password: "",
     confirmPassword: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<{
-    name?: string;
-    phone?: string;
     password?: string;
     confirmPassword?: string;
     general?: string;
   }>({});
 
-  const validatePhone = (phoneNumber: string): boolean => {
-    const phoneRegex = /^966\d{9}$/;
-    return phoneRegex.test(phoneNumber);
-  };
+  useEffect(() => {
+    // التحقق من وجود رقم الهاتف في localStorage
+    const resetPhone = localStorage.getItem('resetPhone');
+    if (resetPhone) {
+      setPhone(resetPhone);
+    } else {
+      // إذا لم يكن هناك رقم هاتف، توجيه إلى صفحة نسيان كلمة المرور
+      router.push('/auth/forgot-password');
+    }
+  }, [router]);
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "الاسم مطلوب";
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "الاسم يجب أن يكون حرفين على الأقل";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "رقم الهاتف مطلوب";
-    } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = "رقم الهاتف يجب أن يبدأ بـ 966 ويتكون من 12 رقم";
-    }
 
     if (!formData.password.trim()) {
       newErrors.password = "كلمة المرور مطلوبة";
@@ -69,14 +61,13 @@ export default function SignupClient() {
     setErrors({});
 
     try {
-      const response = await fetch('http://localhost:4000/api/user/register', {
+      const response = await fetch('http://localhost:4000/api/user/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone,
+          phone,
           password: formData.password,
         }),
       });
@@ -84,34 +75,22 @@ export default function SignupClient() {
       const data = await response.json();
 
       if (response.ok) {
-        // حفظ رقم الهاتف في localStorage للتحقق
-        localStorage.setItem('pendingPhone', formData.phone);
+        setIsSuccess(true);
         
-        // توجيه إلى صفحة التحقق
-        router.push('/auth/verify');
+        // تنظيف localStorage
+        localStorage.removeItem('resetPhone');
+        
+        // توجيه إلى صفحة تسجيل الدخول بعد 3 ثوان
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 3000);
       } else {
-        setErrors({ general: data.message || 'حدث خطأ في إنشاء الحساب' });
+        setErrors({ general: data.message || 'حدث خطأ في إعادة تعيين كلمة المرور' });
       }
     } catch (error) {
       setErrors({ general: 'حدث خطأ في الاتصال بالخادم' });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ''); // إزالة أي شيء غير رقمي
-    
-    // إضافة 966 تلقائياً إذا لم يكن موجوداً
-    if (value.length > 0 && !value.startsWith('966')) {
-      if (value.startsWith('5')) {
-        value = '966' + value;
-      }
-    }
-    
-    // تحديد الحد الأقصى للأرقام (12 رقم)
-    if (value.length <= 12) {
-      setFormData(prev => ({ ...prev, phone: value }));
     }
   };
 
@@ -122,6 +101,50 @@ export default function SignupClient() {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <Image
+              src="/images/whitelogo.png"
+              alt="EVA Logo"
+              width={150}
+              height={150}
+              className="mx-auto mb-6"
+            />
+            
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 mb-6">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                className="flex justify-center mb-4"
+              >
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+              </motion.div>
+              <h2 className="text-2xl font-bold mb-2">تم بنجاح!</h2>
+              <p className="text-green-500 font-medium mb-2">
+                تم إعادة تعيين كلمة المرور بنجاح
+              </p>
+              <p className="text-sm text-muted-foreground">
+                يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة
+              </p>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              جاري توجيهك إلى صفحة تسجيل الدخول...
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -138,9 +161,9 @@ export default function SignupClient() {
             height={150}
             className="mx-auto mb-6"
           />
-          <h2 className="text-3xl font-bold">إنشاء حساب جديد</h2>
+          <h2 className="text-3xl font-bold">إعادة تعيين كلمة المرور</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            انضم إلينا! أنشئ حسابك الجديد
+            أدخل كلمة المرور الجديدة
           </p>
         </motion.div>
 
@@ -160,65 +183,8 @@ export default function SignupClient() {
 
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
-                الاسم الكامل *
-              </label>
-              <div className="relative">
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  className={`appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10 ${
-                    errors.name ? 'border-red-500' : 'border-border/20 focus:border-primary/50'
-                  }`}
-                  placeholder="أدخل اسمك الكامل"
-                />
-                <User className="absolute right-3 top-3 h-5 w-5 text-muted" />
-              </div>
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                رقم الهاتف *
-              </label>
-              <div className="relative">
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  placeholder="966501234567"
-                  className={`appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10 ${
-                    errors.phone ? 'border-red-500' : 'border-border/20 focus:border-primary/50'
-                  }`}
-                />
-                <Phone className="absolute right-3 top-3 h-5 w-5 text-muted" />
-              </div>
-              {errors.phone && (
-                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {errors.phone}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                مثال: 966501234567 (يبدأ بـ 966)
-              </p>
-            </div>
-
-            <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">
-                كلمة المرور *
+                كلمة المرور الجديدة *
               </label>
               <div className="relative">
                 <input
@@ -231,7 +197,7 @@ export default function SignupClient() {
                   className={`appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10 ${
                     errors.password ? 'border-red-500' : 'border-border/20 focus:border-primary/50'
                   }`}
-                  placeholder="كلمة المرور"
+                  placeholder="كلمة المرور الجديدة"
                 />
                 <Lock className="absolute right-3 top-3 h-5 w-5 text-muted" />
               </div>
@@ -282,10 +248,7 @@ export default function SignupClient() {
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
               ) : (
-                <>
-                  <UserPlus className="h-5 w-5 ml-2" />
-                  إنشاء حساب
-                </>
+                "إعادة تعيين كلمة المرور"
               )}
             </motion.button>
           </div>
@@ -294,9 +257,10 @@ export default function SignupClient() {
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"
-            className="text-sm text-primary hover:text-primary/80"
+            className="text-sm text-primary hover:text-primary/80 inline-flex items-center"
           >
-            لديك حساب بالفعل؟ سجل دخولك
+            <ArrowRight className="h-4 w-4 ml-1" />
+            العودة إلى تسجيل الدخول
           </Link>
         </div>
       </div>
