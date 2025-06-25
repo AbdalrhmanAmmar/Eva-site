@@ -1,5 +1,6 @@
 "use client";
 
+import { useProductsStore } from "@/stores/ProductsStore";
 import { motion } from "framer-motion";
 import {
   Package,
@@ -11,7 +12,6 @@ import {
   ShoppingCart,
   Eye,
 } from "lucide-react";
-import { useProductsStore } from "@/stores/productsStore";
 
 export default function ProductStats() {
   const {
