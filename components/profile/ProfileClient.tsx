@@ -35,7 +35,7 @@ export default function ProfileClient() {
 
   const [activeTab, setActiveTab] = useState<"profile" | "points" | "leaderboard">("profile");
 
-  if (name) {
+  if (!user?.name) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -46,7 +46,7 @@ export default function ProfileClient() {
   }
 
   // حساب المستوى والنقاط
-  const points = user.points || 0;
+  const points =  0;
   const currentRank = points >= rankThresholds.gold ? "gold" : 
                      points >= rankThresholds.silver ? "silver" : "bronze";
   const pointsToNextRank = currentRank === "gold" ? 0 : 
@@ -54,7 +54,7 @@ export default function ProfileClient() {
                           rankThresholds.silver - points;
 
   const handleSave = () => {
-    setUser({ ...user, ...editedProfile });
+    // setUser({ ...user, ...editedProfile });
     setIsEditing(false);
   };
 
@@ -206,7 +206,7 @@ export default function ProfileClient() {
                       <Phone className="w-5 h-5 text-primary" />
                       <div>
                         <div className="text-sm text-muted-foreground">رقم الجوال</div>
-                        <div className="font-medium">+966 {user.phone}</div>
+                        <div className="font-medium">+966 {user.phone!}</div>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -300,7 +300,7 @@ export default function ProfileClient() {
                       className="flex justify-between items-center p-3 bg-background/50 rounded-lg hover:bg-accent transition-colors"
                     >
                       <span className="text-foreground">{item.action}</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge  className="bg-green-100 text-green-800">
                         {item.points}
                       </Badge>
                     </motion.div>
