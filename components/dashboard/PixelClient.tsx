@@ -41,10 +41,28 @@ interface PixelData {
   lastUpdated: Date;
 }
 
-// إزالة البيانات الثابتة - سيتم جلبها من API
-const mockPixelData: PixelData[] = [];
+interface TrafficSource {
+  source: string;
+  visitors: number;
+  percentage: number;
+}
 
-const analyticsData = {
+interface AnalyticsData {
+  totalEvents: number;
+  totalConversions: number;
+  totalRevenue: number;
+  conversionRate: number;
+  averageOrderValue: number;
+  topPages: any[];
+  deviceBreakdown: {
+    mobile: number;
+    desktop: number;
+    tablet: number;
+  };
+  trafficSources: TrafficSource[];
+}
+
+const analyticsData: AnalyticsData = {
   totalEvents: 0,
   totalConversions: 0,
   totalRevenue: 0,
@@ -65,7 +83,7 @@ export default function PixelClient() {
   const [selectedPixel, setSelectedPixel] = useState<PixelData | null>(null);
   const [dateRange, setDateRange] = useState("7d");
   const [isLoading, setIsLoading] = useState(false);
-  const [analytics, setAnalytics] = useState(analyticsData);
+  const [analytics, setAnalytics] = useState<AnalyticsData>(analyticsData);
 
   // جلب البيانات من API
   useEffect(() => {
