@@ -88,41 +88,53 @@ export const authAPI = {
   },
 
   // إرسال رمز التحقق للتسجيل
-  sendOTP: async (data: SendOTPFormData): Promise<OTPResponse> => {
+  sendOTP: async (data: { phone: string }): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await api.post("/user/send-otp", data);
       return response.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || "حدث خطأ في إرسال رمز التحقق"
-      );
+      throw new Error(error.response?.data?.message || "حدث خطأ في إرسال رمز التحقق");
     }
   },
 
   // التحقق من رمز OTP فقط (بدون استكمال التسجيل)
-  verifyOTPOnly: async (data: VerifyOTPFormData & { otpId: string }): Promise<VerifyOTPOnlyResponse> => {
+  verifyOTPOnly: async (data: { otp: string; otpId: string }): Promise<{ 
+    success: boolean; 
+    message: string;
+    data?: { verified: boolean; otpId: string }
+  }> => {
     try {
-      const response = await api.post("/user/verify-otp-only", {
-        otp: data.otp,
-        otpId: data.otpId,
-      });
+      const response = await api.post("/user/verify-otp-only", data);
       return response.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || "رمز التحقق غير صحيح"
-      );
+      throw new Error(error.response?.data?.message || "رمز التحقق غير صحيح");
     }
   },
 
   // التحقق من الرمز واستكمال التسجيل
-  verifyOTPAndCompleteRegistration: async (data: CompleteRegistrationFormData): Promise<AuthResponse> => {
+verifyOTPAndCompleteRegistration: async (data: {
+    otp: string;
+    otpId: string;
+    name: string;
+    password: string;
+  }): Promise<AuthResponse> => {
     try {
-      const response = await api.post("/user/verify-otp-complete", data);
+      const response = await api.post("/user/verify-otp-complete", {
+        otpId: data.otpId,
+        otp: data.otp,
+        name: data.name,
+        password: data.password
+      });
+      
+      // هنا يجب أن يكون التوكن موجودًا في response.data.token
+      const token = response.data.token;
+      
+      // حفظ التوكن في localStorage أو Cookies
+      localStorage.setItem('authToken', token);
+      
       return response.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || "حدث خطأ في استكمال التسجيل"
-      );
+      throw new Error(error.response?.data?.message || "حدث خطأ في استكمال التسجيل");
     }
   },
 

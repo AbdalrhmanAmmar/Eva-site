@@ -81,13 +81,13 @@ export default function Navbar() {
       <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
     </Link>
   ) : user.role === 'user' ? (
-    <Link
-      href="/user"
-      className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
-    >
-      <span>لوحة المستخدم</span>
-      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-    </Link>
+            <Link
+                    href="/profile"
+                    className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors"
+                  >
+                    <UserCircle className="w-5 h-5" />
+                    <span>حسابي</span>
+                  </Link>
   ) : null
 )}
 
@@ -96,13 +96,7 @@ export default function Navbar() {
               
               {user ? (
                 <div className="flex items-center gap-4">
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors"
-                  >
-                    <UserCircle className="w-5 h-5" />
-                    <span>حسابي</span>
-                  </Link>
+         
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"

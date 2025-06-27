@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Lock, UserPlus, User, AlertCircle, ArrowRight, Mail, ChevronLeft } from "lucide-react";
+import { Phone, Lock, UserPlus, User, AlertCircle, ChevronLeft, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { authAPI } from "@/lib/api/auth";
-import { FaSaudi } from "react-icons/fa6";
-
+import toast, { Toaster } from 'react-hot-toast';
 // Step 1: Phone verification
 const PhoneVerificationStep = ({
   phone,
@@ -74,51 +73,44 @@ const PhoneVerificationStep = ({
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="space-y-4"
-        >
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
-              رقم الجوال السعودي
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                <Phone className="h-5 w-5" />
-              </div>
-              <div className="absolute inset-y-0 right-10 flex items-center pr-2 border-r border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-1.5 px-2">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">+966</span>
-                  <div className="w-5 h-5 rounded-full overflow-hidden">
-                    <Image 
-                      src="https://flagcdn.com/sa.svg" 
-                      alt="Saudi Arabia" 
-                      width={20} 
-                      height={20} 
-                      className="object-cover"
-                    />
-                  </div>
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+            رقم الجوال السعودي
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <Phone className="h-5 w-5" />
+            </div>
+            <div className="absolute inset-y-0 right-10 flex items-center pr-2 border-r border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-1.5 px-2">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">+966</span>
+                <div className="w-5 h-5 rounded-full overflow-hidden">
+                  <Image 
+                    src="https://flagcdn.com/sa.svg" 
+                    alt="Saudi Arabia" 
+                    width={20} 
+                    height={20} 
+                    className="object-cover"
+                  />
                 </div>
               </div>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                value={displayPhone}
-                onChange={handlePhoneChange}
-                placeholder="5X XXX XXXX"
-                className="block w-full pr-32 py-3 text-right border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white transition-all duration-200"
-                dir="ltr"
-              />
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
-              مثال: 512345678
-            </p>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              value={displayPhone}
+              onChange={handlePhoneChange}
+              placeholder="5X XXX XXXX"
+              className="block w-full pr-32 py-3 text-right border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white transition-all duration-200"
+              dir="ltr"
+            />
           </div>
-        </motion.div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
+            مثال: 512345678
+          </p>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -226,8 +218,8 @@ const OTPVerificationStep = ({
       </motion.div>
 
       <motion.form
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
         className="mt-6 space-y-6"
         onSubmit={onSubmit}
@@ -344,7 +336,6 @@ const CompleteRegistrationStep = ({
   formData: {
     name: string;
     password: string;
-    confirmPassword: string;
   };
   setFormData: (data: any) => void;
   isLoading: boolean;
@@ -385,8 +376,8 @@ const CompleteRegistrationStep = ({
       </motion.div>
 
       <motion.form
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.5 }}
         className="mt-6 space-y-6"
         onSubmit={onSubmit}
@@ -402,75 +393,49 @@ const CompleteRegistrationStep = ({
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="space-y-4"
-        >
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
-              الاسم الكامل
-            </label>
-            <div className="relative">
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
-                placeholder="أدخل اسمك الكامل"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                <User className="h-5 w-5" />
-              </div>
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+            الاسم الكامل
+          </label>
+          <div className="relative">
+            <input
+              id="name"
+              name="name"
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
+              placeholder="أدخل اسمك الكامل"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <User className="h-5 w-5" />
             </div>
           </div>
+        </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
-              كلمة المرور
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
-                placeholder="كلمة المرور (6 أحرف على الأقل)"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                <Lock className="h-5 w-5" />
-              </div>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+            كلمة المرور
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              value={formData.password}
+              onChange={(e) => handleInputChange("password", e.target.value)}
+              className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
+              placeholder="كلمة المرور (6 أحرف على الأقل)"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <Lock className="h-5 w-5" />
             </div>
           </div>
+        </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
-              تأكيد كلمة المرور
-            </label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
-                placeholder="أعد إدخال كلمة المرور"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                <Lock className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-        </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -506,59 +471,86 @@ const CompleteRegistrationStep = ({
 // Main Component
 export default function SignupClient() {
   const router = useRouter();
-  const { setUser, setToken, setAuthenticated, setPendingPhone } = useAuthStore();
-  
+  const {
+    setUser,
+    setToken,
+    setAuthenticated,
+    setPendingPhone,
+    otpId,
+    setOTPData,
+    clearOTPData,
+  } = useAuthStore();
+
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [phone, setPhone] = useState("966");
   const [otp, setOtp] = useState("");
-  const [otpId, setOtpId] = useState("");
   const [registrationData, setRegistrationData] = useState({
     name: "",
     password: "",
-    confirmPassword: ""
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [canResend, setCanResend] = useState(false);
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Step 1: Send OTP
+const handleSendOTP = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!phone.trim()) {
+    setError("رقم الهاتف مطلوب");
+    return;
+  }
+
+  if (!/^966\d{9}$/.test(phone)) {
+    setError("رقم الهاتف غير صحيح (يجب أن يبدأ بـ 966 ويتكون من 12 رقم)");
+    return;
+  }
+
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const response = await authAPI.sendOTP({ phone });
+      console.log("sendOTP response:", response);
+
+
     
-    if (!phone.trim()) {
-      setError("رقم الهاتف مطلوب");
-      return;
-    }
-    
-    if (!/^966\d{9}$/.test(phone)) {
-      setError("رقم الهاتف غير صحيح (يجب أن يبدأ بـ 966 ويتكون من 12 رقم)");
-      return;
-    }
+    // هنا يجب تعديل الكود ليتناسب مع استجابة API الفعلية
+if (response.success) {
+const otpId = response.data?.otpId;
+const expiresAt = response.data?.expiresAt;
 
-    setIsLoading(true);
-    setError(null);
+  if (otpId && expiresAt) {
+    setPendingPhone(phone);
+    setOTPData(otpId, expiresAt); // تحديث الـ store
+    setTimeLeft(5 * 60);
+    setCurrentStep(2);
+  } else {
+    setError("لم يتم استلام رمز التحقق، يرجى المحاولة مرة أخرى");
+  }
+} else {
+  setError(response.message || "حدث خطأ في إرسال رمز التحقق");
+}
+  } catch (error: any) {
+    setError(error.message || "حدث خطأ في إرسال رمز التحقق");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
-    try {
-      const response = await authAPI.sendOTP({ phone });
-      
-      if (response.success && response.data) {
-        setOtpId(response.data.otpId);
-        setPendingPhone(phone);
-        setTimeLeft(5 * 60);
-        setCurrentStep(2);
-      }
-    } catch (error: any) {
-      setError(error.message || "حدث خطأ في إرسال رمز التحقق");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Step 2: Verify OTP
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (otp.length !== 6) {
       setError("رمز التحقق يجب أن يكون 6 أرقام");
+      return;
+    }
+
+    if (!otpId) {
+      setError("رمز التحقق غير موجود، يرجى إعادة إرسال الرمز.");
       return;
     }
 
@@ -567,70 +559,89 @@ export default function SignupClient() {
 
     try {
       const response = await authAPI.verifyOTPOnly({ otp, otpId });
-      
+      console.log("verifyOTP response:", response);
+
       if (response.success) {
         setCurrentStep(3);
       }
     } catch (error: any) {
       setError(error.message || "رمز التحقق غير صحيح");
+      console.log("verifyOTP error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCompleteRegistration = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!registrationData.name.trim()) {
-      setError("الاسم مطلوب");
-      return;
-    }
-    
-    if (registrationData.password.length < 6) {
-      setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
-      return;
-    }
-    
-    if (registrationData.password !== registrationData.confirmPassword) {
-      setError("كلمة المرور غير متطابقة");
-      return;
-    }
+  // Step 3: Complete Registration
+const handleCompleteRegistration = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    setIsLoading(true);
-    setError(null);
+  if (!registrationData.name.trim()) {
+    setError("الاسم مطلوب");
+    toast.error("الاسم مطلوب");
+    return;
+  }
 
-    try {
-      const response = await authAPI.verifyOTPAndCompleteRegistration({
-        phone,
-        otp,
-        otpId,
-        name: registrationData.name,
-        password: registrationData.password,
-        confirmPassword: registrationData.confirmPassword
-      });
+  if (registrationData.password.length < 6) {
+    setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    return;
+  }
 
-      if (response.success && response.data) {
-        setUser(response.data.user);
-        if (response.data.token) {
-          setToken(response.data.token);
-        }
-        setAuthenticated(true);
-        router.push("/");
-      }
-    } catch (error: any) {
-      setError(error.message || "حدث خطأ في استكمال التسجيل");
-    } finally {
-      setIsLoading(false);
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const response = await authAPI.verifyOTPAndCompleteRegistration({
+      otpId: otpId!,
+      otp: otp,
+      name: registrationData.name,
+      password: registrationData.password,
+    });
+
+    console.log("Full registration response:", response);
+
+    // التعديل الرئيسي هنا - التعامل مع الرسالة النصية كحالة نجاح
+     if (response.success || response.message?.includes("completed")) {
+      setUser(response.data?.user || { phone }); // استخدام بيانات المستخدم أو رقم الهاتف كبديل
+      setToken(response.data?.token);
+      localStorage.setItem("token", response.data?.token);
+      setAuthenticated(true);
+      clearOTPData();
+
+      toast.success("تم إنشاء الحساب بنجاح!");
+      setTimeout(() => router.push("/profile"), 2000);
+    } else {
+      throw new Error(response.message || "فشل في التسجيل");
     }
-  };
+  } catch (error: any) {
+    console.error("Detailed registration error:", error);
+    const errorMsg = error.message || "حدث خطأ في استكمال التسجيل";
+    setError(errorMsg);
+    toast.error(errorMsg);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
+  // Resend OTP
   const handleResendOTP = async () => {
+    if (!otpId) {
+      setError("رمز التحقق غير موجود، لا يمكن إعادة الإرسال");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      await authAPI.resendOTP(otpId);
-      setTimeLeft(5 * 60);
+      const response = await authAPI.resendOTP(otpId);
+      if (response.success && response.data) {
+        setOTPData(response.data.otpId, response.data.expiresAt);
+        setTimeLeft(5 * 60);
+        setCanResend(false);
+        setOtp("");
+      }
     } catch (error: any) {
       setError(error.message || "حدث خطأ في إعادة إرسال رمز التحقق");
     } finally {
@@ -638,6 +649,7 @@ export default function SignupClient() {
     }
   };
 
+  // Back button handler
   const handleBack = () => {
     if (currentStep === 2) {
       setOtp("");
@@ -647,9 +659,13 @@ export default function SignupClient() {
     }
   };
 
+  // Timer countdown
   useEffect(() => {
-    if (timeLeft <= 0) return;
-    
+    if (timeLeft <= 0) {
+      setCanResend(true);
+      return;
+    }
+
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -659,7 +675,7 @@ export default function SignupClient() {
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [timeLeft]);
 
@@ -712,6 +728,18 @@ export default function SignupClient() {
           </motion.div>
         </AnimatePresence>
       </div>
+          <Toaster 
+      position="top-center"
+      toastOptions={{
+        style: {
+          background: '#363636',
+          color: '#fff',
+        },
+        success: {
+          duration: 3000,
+        },
+      }}
+    />
     </div>
   );
 }
