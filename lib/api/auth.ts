@@ -33,7 +33,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/user/login";
+      window.location.href = "/auth/login";
     }
     return Promise.reject(error);
   }
@@ -64,12 +64,21 @@ export interface OTPResponse {
   };
 }
 
+export interface VerifyOTPOnlyResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    verified: boolean;
+    otpId: string;
+  };
+}
+
 // دوال API
 export const authAPI = {
   // تسجيل الدخول
   login: async (data: LoginFormData): Promise<AuthResponse> => {
     try {
-      const response = await api.post("/auth/login", data);
+      const response = await api.post("/user/login", data);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -90,14 +99,29 @@ export const authAPI = {
     }
   },
 
-  // التحقق من الرمز واستكمال التسجيل
-  verifyOTPAndCompleteRegistration: async (data: CompleteRegistrationFormData): Promise<AuthResponse> => {
+  // التحقق من رمز OTP فقط (بدون استكمال التسجيل)
+  verifyOTPOnly: async (data: VerifyOTPFormData & { otpId: string }): Promise<VerifyOTPOnlyResponse> => {
     try {
-      const response = await api.post("/user/verify-otp", data);
+      const response = await api.post("/user/verify-otp-only", {
+        otp: data.otp,
+        otpId: data.otpId,
+      });
       return response.data;
     } catch (error: any) {
       throw new Error(
-        error.response?.data?.message || "حدث خطأ في التحقق من الرمز"
+        error.response?.data?.message || "رمز التحقق غير صحيح"
+      );
+    }
+  },
+
+  // التحقق من الرمز واستكمال التسجيل
+  verifyOTPAndCompleteRegistration: async (data: CompleteRegistrationFormData): Promise<AuthResponse> => {
+    try {
+      const response = await api.post("/user/verify-otp-complete", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "حدث خطأ في استكمال التسجيل"
       );
     }
   },
@@ -116,7 +140,7 @@ export const authAPI = {
     }
   },
 
-  // التحقق من رمز OTP
+  // التحقق من رمز OTP (للاستخدام العام)
   verifyOTP: async (
     data: VerifyOTPFormData & { otpId: string }
   ): Promise<AuthResponse> => {

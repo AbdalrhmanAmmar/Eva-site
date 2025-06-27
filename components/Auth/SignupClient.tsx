@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, Lock, UserPlus, User, AlertCircle, ArrowRight } from "lucide-react";
+import { Phone, Lock, UserPlus, User, AlertCircle, ArrowRight, Mail, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/authStore";
 import { authAPI } from "@/lib/api/auth";
@@ -25,70 +25,81 @@ const PhoneVerificationStep = ({
   onSubmit: (e: React.FormEvent) => void;
 }) => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ''); // إزالة أي شيء غير رقمي
-    
-    // تحديد الحد الأقصى للأرقام (9 أرقام بعد 966)
+    let value = e.target.value.replace(/\D/g, '');
     if (value.length <= 9) {
-      // نضيف 966 للقيمة المخزنة
       setPhone('966' + value);
     }
   };
 
-  // استخراج الأرقام بعد 966 للعرض في حقل الإدخال
   const displayPhone = phone.startsWith('966') ? phone.substring(3) : phone;
 
   return (
-    <>
+    <div className="space-y-8">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <Image
-          src="/images/whitelogo.png"
-          alt="EVA Logo"
-          width={150}
-          height={150}
-          className="mx-auto mb-6"
-        />
-        <h2 className="text-3xl font-bold">إنشاء حساب جديد</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          الخطوة الأولى: التحقق من رقم الهاتف
+        <div className="mb-8">
+          <Image
+            src="/images/whitelogo.png"
+            alt="EVA Logo"
+            width={120}
+            height={120}
+            className="mx-auto"
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">مرحباً بك في إيفا</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          سجل حسابك الجديد في خطوات بسيطة
         </p>
       </motion.div>
 
       <motion.form
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mt-8 space-y-6"
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="mt-6 space-y-6"
         onSubmit={onSubmit}
       >
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <span className="text-red-500 text-sm">{error}</span>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-4 flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
+          </motion.div>
         )}
 
-        <div className="rounded-md shadow-sm space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-4"
+        >
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium mb-2">
-              رقم الهاتف *
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+              رقم الجوال السعودي
             </label>
             <div className="relative">
-              <div className="absolute right-3 top-3 flex items-center gap-2 text-muted">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                 <Phone className="h-5 w-5" />
               </div>
-              <div className="absolute right-10 top-3 flex items-center gap-1 text-muted border-l border-border/20 pl-2">
-                <span className="text-sm font-medium">966</span>
-                <div className="w-5 h-5 rounded-full overflow-hidden">
-                  <Image 
-                    src="https://flagcdn.com/sa.svg" 
-                    alt="Saudi Arabia" 
-                    width={20} 
-                    height={20} 
-                  />
+              <div className="absolute inset-y-0 right-10 flex items-center pr-2 border-r border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-1.5 px-2">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">+966</span>
+                  <div className="w-5 h-5 rounded-full overflow-hidden">
+                    <Image 
+                      src="https://flagcdn.com/sa.svg" 
+                      alt="Saudi Arabia" 
+                      width={20} 
+                      height={20} 
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
               </div>
               <input
@@ -98,42 +109,59 @@ const PhoneVerificationStep = ({
                 required
                 value={displayPhone}
                 onChange={handlePhoneChange}
-                placeholder="5XXXXXXXX"
-                className="appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-32"
+                placeholder="5X XXX XXXX"
+                className="block w-full pr-32 py-3 text-right border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white transition-all duration-200"
+                dir="ltr"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              مثال: 5XXXXXXXX (بدون 966)
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
+              مثال: 512345678
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <button
             type="submit"
             disabled={isLoading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-background bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ${isLoading ? 'opacity-70' : ''}`}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري الإرسال...
+              </div>
             ) : (
-              "إرسال رمز التحقق"
+              <div className="flex items-center justify-center">
+                <span>إرسال رمز التحقق</span>
+                <Mail className="w-4 h-4 mr-2" />
+              </div>
             )}
-          </motion.button>
-        </div>
+          </button>
+        </motion.div>
       </motion.form>
 
-      <div className="mt-6 text-center">
-        <Link
-          href="/auth/login"
-          className="text-sm text-primary hover:text-primary/80"
-        >
-          لديك حساب بالفعل؟ سجل دخولك
-        </Link>
-      </div>
-    </>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="text-center text-sm"
+      >
+        <p className="text-gray-600 dark:text-gray-400">
+          لديك حساب بالفعل؟{' '}
+          <Link href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+            تسجيل الدخول
+          </Link>
+        </p>
+      </motion.div>
+    </div>
   );
 };
 
@@ -146,7 +174,8 @@ const OTPVerificationStep = ({
   error,
   onSubmit,
   onResendOTP,
-  timeLeft
+  timeLeft,
+  onBack
 }: {
   phone: string;
   otp: string;
@@ -156,106 +185,150 @@ const OTPVerificationStep = ({
   onSubmit: (e: React.FormEvent) => void;
   onResendOTP: () => void;
   timeLeft: number;
+  onBack: () => void;
 }) => {
+  const formattedPhone = `${phone.substring(0, 5)} **** ${phone.substring(9)}`;
+
+  // Auto-submit when OTP is complete
+  useEffect(() => {
+    if (otp.length === 6 && !isLoading) {
+      onSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }
+  }, [otp]);
+
   return (
-    <>
+    <div className="space-y-8">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <Image
-          src="/images/whitelogo.png"
-          alt="EVA Logo"
-          width={150}
-          height={150}
-          className="mx-auto mb-6"
-        />
-        <h2 className="text-3xl font-bold">التحقق من رقم الهاتف</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          تم إرسال رمز التحقق إلى {phone}
+        <button
+          onClick={onBack}
+          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 ml-1" />
+          العودة
+        </button>
+        
+        <div className="mb-6">
+          <div className="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto">
+            <Mail className="h-8 w-8 text-primary-600 dark:text-primary-400" />
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">تحقق من رقمك</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          تم إرسال رمز التحقق إلى الرقم{' '}
+          <span className="font-medium text-gray-900 dark:text-white">{formattedPhone}</span>
         </p>
       </motion.div>
 
       <motion.form
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mt-8 space-y-6"
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="mt-6 space-y-6"
         onSubmit={onSubmit}
       >
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <span className="text-red-500 text-sm">{error}</span>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-4 flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
+          </motion.div>
         )}
 
-        <div className="rounded-md shadow-sm space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-4"
+        >
           <div>
-            <label htmlFor="otp" className="block text-sm font-medium mb-2 text-center">
-              أدخل رمز التحقق المكون من 6 أرقام
-            </label>
-            <input
-              id="otp"
-              name="otp"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              required
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              className="w-full text-center text-2xl font-bold py-4 bg-background border border-border/20 rounded-lg focus:outline-none focus:border-primary/50 tracking-widest"
-              placeholder="000000"
-              dir="ltr"
-            />
+            <label htmlFor="otp" className="sr-only">رمز التحقق</label>
+            <div className="flex justify-center space-x-3">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <motion.div
+                  key={index}
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1 * index }}
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={otp[index] || ''}
+                    onChange={(e) => {
+                      const newOtp = [...otp];
+                      newOtp[index] = e.target.value.replace(/\D/g, '');
+                      setOtp(newOtp.join(''));
+                      
+                      // Auto focus next input
+                      if (e.target.value && index < 5) {
+                        const nextInput = document.getElementById(`otp-${index + 1}`);
+                        if (nextInput) nextInput.focus();
+                      }
+                    }}
+                    id={`otp-${index}`}
+                    className="w-12 h-14 text-2xl font-bold text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 dark:text-white transition-all duration-200"
+                  />
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col items-center space-y-4"
+        >
+          <button
             type="submit"
             disabled={isLoading || otp.length !== 6}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-background bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ${(isLoading || otp.length !== 6) ? 'opacity-70' : ''}`}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري التحقق...
+              </div>
             ) : (
-              "التحقق والمتابعة"
+              'التحقق والمتابعة'
             )}
-          </motion.button>
-        </div>
+          </button>
 
-        <div className="text-center">
-          {timeLeft > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              يمكنك طلب رمز جديد خلال {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-            </p>
-          ) : (
-            <button
-              onClick={onResendOTP}
-              disabled={isLoading}
-              className="text-sm text-primary hover:text-primary/80"
-            >
-              إعادة إرسال الرمز
-            </button>
-          )}
-        </div>
+          <div className="text-sm text-center">
+            {timeLeft > 0 ? (
+              <p className="text-gray-500 dark:text-gray-400">
+                يمكنك إعادة الإرسال خلال{' '}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                </span>
+              </p>
+            ) : (
+              <button
+                onClick={onResendOTP}
+                disabled={isLoading}
+                className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+              >
+                إعادة إرسال الرمز
+              </button>
+            )}
+          </div>
+        </motion.div>
       </motion.form>
-
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => window.location.reload()}
-          className="text-sm text-primary hover:text-primary/80 inline-flex items-center"
-        >
-          <ArrowRight className="h-4 w-4 ml-1" />
-          العودة للخلف
-        </button>
-      </div>
-    </>
+    </div>
   );
 };
 
@@ -265,7 +338,8 @@ const CompleteRegistrationStep = ({
   setFormData,
   isLoading,
   error,
-  onSubmit
+  onSubmit,
+  onBack
 }: {
   formData: {
     name: string;
@@ -276,49 +350,67 @@ const CompleteRegistrationStep = ({
   isLoading: boolean;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
+  onBack: () => void;
 }) => {
   const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
   return (
-    <>
+    <div className="space-y-8">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <Image
-          src="/images/whitelogo.png"
-          alt="EVA Logo"
-          width={150}
-          height={150}
-          className="mx-auto mb-6"
-        />
-        <h2 className="text-3xl font-bold">استكمال بيانات الحساب</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          تم التحقق من رقم هاتفك بنجاح، يرجى استكمال بيانات حسابك
+        <button
+          onClick={onBack}
+          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 ml-1" />
+          العودة
+        </button>
+        
+        <div className="mb-6">
+          <div className="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto">
+            <UserPlus className="h-8 w-8 text-primary-600 dark:text-primary-400" />
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">استكمال التسجيل</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          أكمل بياناتك الشخصية لإنشاء حسابك
         </p>
       </motion.div>
 
       <motion.form
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="mt-8 space-y-6"
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="mt-6 space-y-6"
         onSubmit={onSubmit}
       >
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-500" />
-            <span className="text-red-500 text-sm">{error}</span>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-4 flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
+          </motion.div>
         )}
 
-        <div className="rounded-md shadow-sm space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-4"
+        >
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-2">
-              الاسم الكامل *
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+              الاسم الكامل
             </label>
             <div className="relative">
               <input
@@ -328,16 +420,18 @@ const CompleteRegistrationStep = ({
                 required
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10"
+                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
                 placeholder="أدخل اسمك الكامل"
               />
-              <User className="absolute right-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                <User className="h-5 w-5" />
+              </div>
             </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
-              كلمة المرور *
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+              كلمة المرور
             </label>
             <div className="relative">
               <input
@@ -347,16 +441,18 @@ const CompleteRegistrationStep = ({
                 required
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className="appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10"
-                placeholder="كلمة المرور"
+                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
+                placeholder="كلمة المرور (6 أحرف على الأقل)"
               />
-              <Lock className="absolute right-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                <Lock className="h-5 w-5" />
+              </div>
             </div>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-              تأكيد كلمة المرور *
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
+              تأكيد كلمة المرور
             </label>
             <div className="relative">
               <input
@@ -366,34 +462,44 @@ const CompleteRegistrationStep = ({
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                className="appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10"
-                placeholder="تأكيد كلمة المرور"
+                className="block w-full pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white text-right transition-all duration-200"
+                placeholder="أعد إدخال كلمة المرور"
               />
-              <Lock className="absolute right-3 top-3 h-5 w-5 text-muted" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                <Lock className="h-5 w-5" />
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <button
             type="submit"
             disabled={isLoading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-background bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 ${isLoading ? 'opacity-70' : ''}`}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري إنشاء الحساب...
+              </div>
             ) : (
-              <>
-                <UserPlus className="h-5 w-5 ml-2" />
-                إنشاء حساب
-              </>
+              <div className="flex items-center justify-center">
+                <span>إنشاء حساب</span>
+                <UserPlus className="w-4 h-4 mr-2" />
+              </div>
             )}
-          </motion.button>
-        </div>
+          </button>
+        </motion.div>
       </motion.form>
-    </>
+    </div>
   );
 };
 
@@ -402,10 +508,10 @@ export default function SignupClient() {
   const router = useRouter();
   const { setUser, setToken, setAuthenticated, setPendingPhone } = useAuthStore();
   
-  // State for multi-step form
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [phone, setPhone] = useState("966");
   const [otp, setOtp] = useState("");
+  const [otpId, setOtpId] = useState("");
   const [registrationData, setRegistrationData] = useState({
     name: "",
     password: "",
@@ -416,7 +522,6 @@ export default function SignupClient() {
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Step 1: Send OTP
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -434,16 +539,14 @@ export default function SignupClient() {
     setError(null);
 
     try {
-      await authAPI.sendOTP({ phone });
+      const response = await authAPI.sendOTP({ phone });
       
-      // حفظ رقم الهاتف للخطوات التالية
-      setPendingPhone(phone);
-      
-      // بدء العد التنازلي (5 دقائق)
-      setTimeLeft(5 * 60);
-      
-      // الانتقال للخطوة التالية
-      setCurrentStep(2);
+      if (response.success && response.data) {
+        setOtpId(response.data.otpId);
+        setPendingPhone(phone);
+        setTimeLeft(5 * 60);
+        setCurrentStep(2);
+      }
     } catch (error: any) {
       setError(error.message || "حدث خطأ في إرسال رمز التحقق");
     } finally {
@@ -451,7 +554,6 @@ export default function SignupClient() {
     }
   };
 
-  // Step 2: Verify OTP
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -464,11 +566,11 @@ export default function SignupClient() {
     setError(null);
 
     try {
-      // هنا نتحقق فقط من صحة الرمز دون استكمال التسجيل
-      await authAPI.verifyOTP({ otp, otpId: phone });
+      const response = await authAPI.verifyOTPOnly({ otp, otpId });
       
-      // الانتقال للخطوة التالية
-      setCurrentStep(3);
+      if (response.success) {
+        setCurrentStep(3);
+      }
     } catch (error: any) {
       setError(error.message || "رمز التحقق غير صحيح");
     } finally {
@@ -476,7 +578,6 @@ export default function SignupClient() {
     }
   };
 
-  // Step 3: Complete Registration
   const handleCompleteRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -502,20 +603,18 @@ export default function SignupClient() {
       const response = await authAPI.verifyOTPAndCompleteRegistration({
         phone,
         otp,
+        otpId,
         name: registrationData.name,
         password: registrationData.password,
         confirmPassword: registrationData.confirmPassword
       });
 
       if (response.success && response.data) {
-        // حفظ بيانات المستخدم
         setUser(response.data.user);
         if (response.data.token) {
           setToken(response.data.token);
         }
         setAuthenticated(true);
-
-        // توجيه المستخدم للصفحة الرئيسية
         router.push("/");
       }
     } catch (error: any) {
@@ -525,14 +624,13 @@ export default function SignupClient() {
     }
   };
 
-  // إعادة إرسال رمز التحقق
   const handleResendOTP = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await authAPI.sendOTP({ phone });
-      setTimeLeft(5 * 60); // إعادة ضبط العد التنازلي
+      await authAPI.resendOTP(otpId);
+      setTimeLeft(5 * 60);
     } catch (error: any) {
       setError(error.message || "حدث خطأ في إعادة إرسال رمز التحقق");
     } finally {
@@ -540,7 +638,15 @@ export default function SignupClient() {
     }
   };
 
-  // تحديث العد التنازلي
+  const handleBack = () => {
+    if (currentStep === 2) {
+      setOtp("");
+      setCurrentStep(1);
+    } else if (currentStep === 3) {
+      setCurrentStep(2);
+    }
+  };
+
   useEffect(() => {
     if (timeLeft <= 0) return;
     
@@ -558,40 +664,53 @@ export default function SignupClient() {
   }, [timeLeft]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {currentStep === 1 && (
-          <PhoneVerificationStep
-            phone={phone}
-            setPhone={setPhone}
-            isLoading={isLoading}
-            error={error}
-            onSubmit={handleSendOTP}
-          />
-        )}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: currentStep === 1 ? -20 : 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: currentStep === 1 ? -20 : 20 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8"
+          >
+            {currentStep === 1 && (
+              <PhoneVerificationStep
+                phone={phone}
+                setPhone={setPhone}
+                isLoading={isLoading}
+                error={error}
+                onSubmit={handleSendOTP}
+              />
+            )}
 
-        {currentStep === 2 && (
-          <OTPVerificationStep
-            phone={phone}
-            otp={otp}
-            setOtp={setOtp}
-            isLoading={isLoading}
-            error={error}
-            onSubmit={handleVerifyOTP}
-            onResendOTP={handleResendOTP}
-            timeLeft={timeLeft}
-          />
-        )}
+            {currentStep === 2 && (
+              <OTPVerificationStep
+                phone={phone}
+                otp={otp}
+                setOtp={setOtp}
+                isLoading={isLoading}
+                error={error}
+                onSubmit={handleVerifyOTP}
+                onResendOTP={handleResendOTP}
+                timeLeft={timeLeft}
+                onBack={handleBack}
+              />
+            )}
 
-        {currentStep === 3 && (
-          <CompleteRegistrationStep
-            formData={registrationData}
-            setFormData={setRegistrationData}
-            isLoading={isLoading}
-            error={error}
-            onSubmit={handleCompleteRegistration}
-          />
-        )}
+            {currentStep === 3 && (
+              <CompleteRegistrationStep
+                formData={registrationData}
+                setFormData={setRegistrationData}
+                isLoading={isLoading}
+                error={error}
+                onSubmit={handleCompleteRegistration}
+                onBack={handleBack}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
