@@ -21,6 +21,7 @@ interface AuthState {
   otpId: string | null;
   isOTPSent: boolean;
   otpExpiresAt: string | null;
+  pendingPhone: string | null;
 
   // حالة إعادة تعيين كلمة المرور
   resetToken: string | null;
@@ -36,6 +37,7 @@ interface AuthState {
   // إجراءات OTP
   setOTPData: (otpId: string, expiresAt: string) => void;
   setOTPSent: (sent: boolean) => void;
+  setPendingPhone: (phone: string) => void;
   clearOTPData: () => void;
 
   // إجراءات إعادة تعيين كلمة المرور
@@ -63,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
       otpId: null,
       isOTPSent: false,
       otpExpiresAt: null,
+      pendingPhone: null,
 
       // حالة إعادة تعيين كلمة المرور
       resetToken: null,
@@ -88,11 +91,13 @@ export const useAuthStore = create<AuthState>()(
           isOTPSent: true,
         }),
       setOTPSent: (sent) => set({ isOTPSent: sent }),
+      setPendingPhone: (phone) => set({ pendingPhone: phone }),
       clearOTPData: () =>
         set({
           otpId: null,
           isOTPSent: false,
           otpExpiresAt: null,
+          pendingPhone: null,
         }),
 
       // إجراءات إعادة تعيين كلمة المرور
@@ -126,6 +131,7 @@ export const useAuthStore = create<AuthState>()(
           otpId: null,
           isOTPSent: false,
           otpExpiresAt: null,
+          pendingPhone: null,
           resetToken: null,
           isResettingPassword: false,
         });

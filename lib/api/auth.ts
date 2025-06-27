@@ -5,11 +5,13 @@ import {
   ForgotPasswordFormData,
   VerifyOTPFormData,
   ResetPasswordFormData,
+  SendOTPFormData,
+  CompleteRegistrationFormData,
 } from "@/lib/validations/auth";
 
 // إعداد Axios
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -76,18 +78,26 @@ export const authAPI = {
     }
   },
 
-  // إنشاء حساب جديد
-  signup: async (data: SignupFormData): Promise<AuthResponse> => {
+  // إرسال رمز التحقق للتسجيل
+  sendOTP: async (data: SendOTPFormData): Promise<OTPResponse> => {
     try {
-      const response = await api.post("/auth/signup", {
-        name: data.name,
-        phone: data.phone,
-        password: data.password,
-      });
+      const response = await api.post("/user/send-otp", data);
       return response.data;
     } catch (error: any) {
       throw new Error(
-        error.response?.data?.message || "حدث خطأ في إنشاء الحساب"
+        error.response?.data?.message || "حدث خطأ في إرسال رمز التحقق"
+      );
+    }
+  },
+
+  // التحقق من الرمز واستكمال التسجيل
+  verifyOTPAndCompleteRegistration: async (data: CompleteRegistrationFormData): Promise<AuthResponse> => {
+    try {
+      const response = await api.post("/user/verify-otp", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "حدث خطأ في التحقق من الرمز"
       );
     }
   },
@@ -97,7 +107,7 @@ export const authAPI = {
     data: ForgotPasswordFormData
   ): Promise<OTPResponse> => {
     try {
-      const response = await api.post("/auth/forgot-password", data);
+      const response = await api.post("/user/forgot-password", data);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -111,7 +121,7 @@ export const authAPI = {
     data: VerifyOTPFormData & { otpId: string }
   ): Promise<AuthResponse> => {
     try {
-      const response = await api.post("/auth/verify-otp", data);
+      const response = await api.post("/user/verify-otp", data);
       return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "رمز التحقق غير صحيح");
@@ -123,7 +133,7 @@ export const authAPI = {
     data: ResetPasswordFormData & { token: string }
   ): Promise<AuthResponse> => {
     try {
-      const response = await api.post("/auth/reset-password", {
+      const response = await api.post("/user/reset-password", {
         password: data.password,
         token: data.token,
       });
@@ -138,7 +148,7 @@ export const authAPI = {
   // إعادة إرسال رمز التحقق
   resendOTP: async (otpId: string): Promise<OTPResponse> => {
     try {
-      const response = await api.post("/auth/resend-otp", { otpId });
+      const response = await api.post("/user/resend-otp", { otpId });
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -150,7 +160,7 @@ export const authAPI = {
   // تسجيل الخروج
   logout: async (): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await api.post("/auth/logout");
+      const response = await api.post("/user/logout");
       return response.data;
     } catch (error: any) {
       throw new Error(

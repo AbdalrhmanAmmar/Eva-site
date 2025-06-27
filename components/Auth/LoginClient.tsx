@@ -29,7 +29,7 @@ export default function LoginClient() {
     if (!phone.trim()) {
       newErrors.phone = "رقم الهاتف مطلوب";
     } else if (!validatePhone(phone)) {
-      newErrors.phone = "رقم الهاتف يجب أن يبدأ بـ 966 ويتكون من 12 رقم";
+      newErrors.phone = "رقم الهاتف غير صحيح";
     }
 
     if (!password.trim()) {
@@ -84,21 +84,19 @@ const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(false);
   }
 };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, ""); // إزالة أي شيء غير رقمي
-
-    // إضافة 966 تلقائياً إذا لم يكن موجوداً
-    if (value.length > 0 && !value.startsWith("966")) {
-      if (value.startsWith("5")) {
-        value = "966" + value;
-      }
-    }
-
-    // تحديد الحد الأقصى للأرقام (12 رقم)
-    if (value.length <= 12) {
-      setPhone(value);
+    let value = e.target.value.replace(/\D/g, ''); // إزالة أي شيء غير رقمي
+    
+    // تحديد الحد الأقصى للأرقام (9 أرقام بعد 966)
+    if (value.length <= 9) {
+      // نضيف 966 للقيمة المخزنة
+      setPhone('966' + value);
     }
   };
+
+  // استخراج الأرقام بعد 966 للعرض في حقل الإدخال
+  const displayPhone = phone.startsWith('966') ? phone.substring(3) : phone;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -135,19 +133,32 @@ const handleSubmit = async (e: React.FormEvent) => {
                 رقم الهاتف *
               </label>
               <div className="relative">
+                <div className="absolute right-3 top-3 flex items-center gap-2 text-muted">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div className="absolute right-10 top-3 flex items-center gap-1 text-muted border-l border-border/20 pl-2">
+                  <span className="text-sm font-medium">966</span>
+                  <div className="w-5 h-5 rounded-full overflow-hidden">
+                    <Image 
+                      src="https://flagcdn.com/sa.svg" 
+                      alt="Saudi Arabia" 
+                      width={20} 
+                      height={20} 
+                    />
+                  </div>
+                </div>
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
                   required
-                  value={phone}
+                  value={displayPhone}
                   onChange={handlePhoneChange}
-                  placeholder="966501234567"
-                  className={`appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-10 ${
+                  placeholder="5XXXXXXXX"
+                  className={`appearance-none relative block w-full px-3 py-3 border placeholder-muted bg-background/50 text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 text-right pr-32 ${
                     errors.phone ? "border-red-500" : "border-border/20 focus:border-primary/50"
                   }`}
                 />
-                <Phone className="absolute right-3 top-3 h-5 w-5 text-muted" />
               </div>
               {errors.phone && (
                 <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -155,7 +166,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   {errors.phone}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground mt-1">مثال: 966501234567 (يبدأ بـ 966)</p>
+              <p className="text-xs text-muted-foreground mt-1">مثال: 5XXXXXXXX (بدون 966)</p>
             </div>
 
             <div>
