@@ -21,6 +21,7 @@ const sidebarItems = [
   { icon: LineChart, label: "التحليلات", href: "/dashboard/analytics" },
   { icon: BarChart3, label: "Pixel والتحليلات", href: "/dashboard/pixel" },
   { icon: Package, label: "المنتجات", href: "/dashboard/products" },
+  { icon: Package, label: "النقاط", href: "/dashboard/points" },
   { icon: Settings, label: "الخدمات", href: "/dashboard/services" },
   { icon: FileText, label: "الصفحات", href: "/dashboard/pages" },
 ];
