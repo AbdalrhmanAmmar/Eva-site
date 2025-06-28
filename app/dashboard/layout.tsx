@@ -12,10 +12,13 @@ import {
   X,
   LogOut,
   BarChart3,
+  LayoutDashboard,
+  LineChart,
 } from "lucide-react";
 
 const sidebarItems = [
   { icon: Home, label: "الرئيسية", href: "/dashboard" },
+  { icon: LineChart, label: "التحليلات", href: "/dashboard/analytics" },
   { icon: BarChart3, label: "Pixel والتحليلات", href: "/dashboard/pixel" },
   { icon: Package, label: "المنتجات", href: "/dashboard/products" },
   { icon: Settings, label: "الخدمات", href: "/dashboard/services" },

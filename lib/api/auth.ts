@@ -205,5 +205,47 @@ verifyOTPAndCompleteRegistration: async (data: {
     }
   },
 };
+export const pointsAPI = {
+  // جلب كل عروض النقاط
+  getAllPointsPackages: async (): Promise<{ success: boolean; data: any[] }> => {
+    try {
+      const response = await api.get("/points");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ في جلب عروض النقاط");
+    }
+  },
+
+  // إنشاء عرض نقاط جديد (مطلوب صلاحيات)
+  createPointsPackage: async (data: { pointsAmount: number; price: number }): Promise<{ success: boolean; message: string; data: any }> => {
+    try {
+      const response = await api.post("/points", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ في إنشاء عرض النقاط");
+    }
+  },
+
+  // تعديل عرض نقاط موجود (مطلوب صلاحيات)
+  updatePointsPackage: async (id: string, data: { pointsAmount?: number; price?: number }): Promise<{ success: boolean; message: string; data: any }> => {
+    try {
+      const response = await api.put(`/points/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ في تعديل عرض النقاط");
+    }
+  },
+
+  // حذف عرض نقاط (مطلوب صلاحيات)
+  deletePointsPackage: async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await api.delete(`/points/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ في حذف عرض النقاط");
+    }
+  },
+};
+
 
 export default api;
