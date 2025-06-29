@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { User, Phone, Mail, Lock, Edit2, Award, Gift, Trophy, Crown, Star, ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { Badge } from "lucide-react"; 
+import PointsRedemption from "./PointsRedemption";
 
 const rankColors = {
   bronze: "from-amber-600 to-amber-800",
@@ -58,6 +58,14 @@ export default function ProfileClient() {
     setIsEditing(false);
   };
 
+  const handleRedeemPoints = async (pointsAmount: number): Promise<boolean> => {
+    // Mock API call
+    console.log(`Redeeming ${pointsAmount} points`);
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(true), 1000);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 my-8">
       <div className="max-w-4xl mx-auto">
@@ -72,9 +80,9 @@ export default function ProfileClient() {
               <div className={`w-24 h-24 rounded-full bg-gradient-to-r ${rankColors[currentRank]} flex items-center justify-center shadow-md`}>
                 <User className="w-12 h-12 text-white" />
               </div>
-              <Badge className="absolute -bottom-2 -right-2 shadow-sm bg-primary">
+              <div className="absolute -bottom-2 -right-2 shadow-sm bg-primary">
                 {rankIcons[currentRank]}
-              </Badge>
+              </div>
             </div>
             
             <div className="text-center sm:text-left flex-1">
@@ -237,12 +245,49 @@ export default function ProfileClient() {
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div className="bg-background/50 p-4 rounded-lg border border-border/10">
                     <div className="text-sm text-muted-foreground">المستوى الحالي</div>
-                    <div className="font-medium capitalize">{currentRank}</div>
+                    <div className="font-medium capitalize">
+                      {currentRank === "gold" ? "ذهبي" : currentRank === "silver" ? "فضي" : "برونزي"}
+                    </div>
                   </div>
                   <div className="bg-background/50 p-4 rounded-lg border border-border/10">
-                    <div className="text-sm text-muted-foreground">النقاط المتبقية</div>
+                    <div className="text-sm text-muted-foreground">النقاط المتبقية للترقية</div>
                     <div className="font-medium">{pointsToNextRank}</div>
                   </div>
+                </div>
+              </div>
+
+              {/* Points Redemption */}
+              <div className="bg-card border border-border/10 rounded-2xl p-6 shadow-sm">
+                <PointsRedemption userPoints={points} onRedeem={handleRedeemPoints} />
+              </div>
+
+              {/* Available Points Packages */}
+              <div className="bg-card border border-border/10 rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-bold mb-6">حزم النقاط المتاحة</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { points: 1000, price: 100 },
+                    { points: 5000, price: 450 },
+                    { points: 10000, price: 850 }
+                  ].map((pkg, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.03 }}
+                      className="bg-background/50 p-4 rounded-lg border border-border/10 hover:border-primary/30 transition-all"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                        <span className="font-bold text-lg">{pkg.points.toLocaleString()} نقطة</span>
+                      </div>
+                      <div className="text-primary font-bold mb-3">{pkg.price} ريال</div>
+                      <div className="text-xs text-muted-foreground">
+                        قيمة النقطة: {(pkg.price / pkg.points).toFixed(2)} ريال
+                      </div>
+                      <button className="w-full mt-3 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm">
+                        شراء الآن
+                      </button>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
 
@@ -300,9 +345,9 @@ export default function ProfileClient() {
                       className="flex justify-between items-center p-3 bg-background/50 rounded-lg hover:bg-accent transition-colors"
                     >
                       <span className="text-foreground">{item.action}</span>
-                      <Badge  className="bg-green-100 text-green-800">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded text-xs">
                         {item.points}
-                      </Badge>
+                      </span>
                     </motion.div>
                   ))}
                 </div>

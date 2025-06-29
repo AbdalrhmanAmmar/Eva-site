@@ -1,528 +1,616 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { motion } from "framer-motion";
 import {
-  Plus,
-  Search,
-  Filter,
-  Edit,
-  Trash2,
-  Eye,
-  Package,
-  Grid3X3,
-  List,
-  MoreVertical,
-  Star,
-  TrendingUp,
-  TrendingDown,
-  AlertCircle,
-  CheckCircle2,
   X,
-  Save,
-  Upload,
-  Tag,
+  Image as ImageIcon,
+  Percent,
   DollarSign,
-  Hash,
+  Tag,
   FileText,
-  Calendar,
-  User,
-  BarChart3,
+  Check,
+  Star,
+  AlertCircle,
 } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import { Product } from "@/stores/ProductsStore";
 
-import ProductForm from "./ProductForm";
-import ProductStats from "./ProductStats";
-import { Product, useProductsStore } from "@/stores/ProductsStore";
+interface ProductFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product | null;
+  onSave: (productData: Partial<Product>) => void;
+  isLoading: boolean;
+}
 
-const categories = [
-  "الكل",
-  "أنظمة المراقبة",
-  "أنظمة التحكم",
-  "إدارة المباني",
-  "كاميرات المراقبة",
-  "أنظمة الإنذار",
-  "أنظمة الاتصال",
-];
+export default function ProductForm({
+  isOpen,
+  onClose,
+  product,
+  onSave,
+  isLoading,
+}: ProductFormProps) {
+  const [formData, setFormData] = useState<Partial<Product>>({
+    name: "",
+    description: "",
+    priceBeforeDiscount: 0,
+    priceAfterDiscount: 0,
+    quantity: 0,
+    images: [],
+    category: "",
+    tag: "",
+    shortDescription: "",
+    showReviews: true,
+    hasDiscount: false,
+    discountPercentage: 0,
+  });
 
-export default function ProductsClient() {
-  const {
-    products,
-    isLoading,
-    error,
-    fetchProducts,
-    createProduct,
-    updateProductAPI,
-    deleteProductAPI,
-    setError,
-    getProductsByCategory,
-    searchProducts,
-  } = useProductsStore();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
 
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("الكل");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  // Initialize form with product data when editing
+useEffect(() => {
+  if (product) {
+    const discountCalc = product.priceBeforeDiscount && product.priceAfterDiscount
+      ? Math.round(
+          ((product.priceBeforeDiscount - product.priceAfterDiscount) /
+          product.priceBeforeDiscount * 100)
+      ) : 0;
 
-  // Load products on component mount
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  // Filter and sort products
-  useEffect(() => {
-    let filtered = products;
-
-    // Apply search filter
-    if (searchTerm.trim()) {
-      filtered = searchProducts(searchTerm);
-    }
-
-    // Apply category filter
-    if (selectedCategory !== "الكل") {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // Sort products
-    filtered.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
-      switch (sortBy) {
-        case "name":
-          aValue = a.name;
-          bValue = b.name;
-          break;
-        case "priceAfterDiscount":
-          aValue = a.priceAfterDiscount;
-          bValue = b.priceAfterDiscount;
-          break;
-        case "quantity":
-          aValue = a.quantity;
-          bValue = b.quantity;
-          break;
-        case "points":
-          aValue = a.points;
-          bValue = b.points;
-          break;
-        case "createdAt":
-        default:
-          aValue = new Date(a.createdAt);
-          bValue = new Date(b.createdAt);
-          break;
-      }
-
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
+    setFormData({
+      ...product,
+      hasDiscount: product.priceBeforeDiscount !== product.priceAfterDiscount,
+      discountPercentage: discountCalc,
     });
+    setPreviewImages(product.images || []);
+  } else {
+    setFormData({
+      name: "",
+      description: "",
+      priceBeforeDiscount: 0,
+      priceAfterDiscount: 0,
+      quantity: 0,
+      images: [],
+      category: "",
+      tag: "",
+      shortDescription: "",
+      showReviews: true,
+      hasDiscount: false,
+      discountPercentage: 0,
+    });
+    setPreviewImages([]);
+  }
+}, [product]);
 
-    setFilteredProducts(filtered);
-  }, [products, searchTerm, selectedCategory, sortBy, sortOrder, searchProducts]);
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
+    },
+    maxFiles: 5,
+    onDrop: (acceptedFiles) => {
+      const newPreviewImages = acceptedFiles.map((file) =>
+        URL.createObjectURL(file)
+      );
+      setPreviewImages([...previewImages, ...newPreviewImages]);
+      setFormData({
+        ...formData,
+        images: [...formData.images!, ...acceptedFiles],
+      });
+    },
+  });
 
-  const handleAddProduct = () => {
-    setSelectedProduct(null);
-    setShowProductForm(true);
+  const removeImage = (index: number) => {
+    const newPreviewImages = [...previewImages];
+    newPreviewImages.splice(index, 1);
+    setPreviewImages(newPreviewImages);
+
+    const newImages = [...formData.images!];
+    newImages.splice(index, 1);
+    setFormData({ ...formData, images: newImages });
   };
 
-  const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setShowProductForm(true);
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" });
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      const success = await deleteProductAPI(productId);
-      if (success) {
-        setShowDeleteConfirm(null);
-      }
-    } catch (error) {
-      console.error("Error deleting product:", error);
+  const handleNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string
+  ) => {
+    const value = parseFloat(e.target.value) || 0;
+    setFormData({ ...formData, [field]: value });
+    setErrors({ ...errors, [field]: "" });
+
+    // Calculate discount if priceBeforeDiscount or discountPercentage changes
+    if (field === "priceBeforeDiscount" || field === "discountPercentage") {
+      calculateDiscount();
     }
   };
 
-  const handleSaveProduct = async (productData: Partial<Product>) => {
-    try {
-      let result;
-      
-      if (selectedProduct) {
-        // Update existing product
-        result = await updateProductAPI(selectedProduct._id, productData);
-      } else {
-        // Add new product
-        result = await createProduct(productData);
-      }
-      
-      if (result) {
-        setShowProductForm(false);
-        setSelectedProduct(null);
-      }
-    } catch (error) {
-      console.error("Error saving product:", error);
-    }
-  };
-
-  const getDiscountPercentage = (product: Product) => {
-    if (!product.priceBeforeDiscount) return 0;
-    return Math.round(((product.priceBeforeDiscount - product.priceAfterDiscount) / product.priceBeforeDiscount) * 100);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ar-SA", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+  const toggleDiscount = () => {
+    const newHasDiscount = !formData.hasDiscount;
+    setFormData({
+      ...formData,
+      hasDiscount: newHasDiscount,
+      priceAfterDiscount: newHasDiscount
+        ? formData.priceBeforeDiscount! *
+          (1 - formData.discountPercentage! / 100)
+        : formData.priceBeforeDiscount,
     });
   };
 
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return { label: "نفد المخزون", color: "text-red-500 bg-red-500/10" };
-    if (quantity < 10) return { label: "مخزون منخفض", color: "text-yellow-500 bg-yellow-500/10" };
-    return { label: "متوفر", color: "text-green-500 bg-green-500/10" };
+  const calculateDiscount = () => {
+    if (formData.hasDiscount) {
+      const discountedPrice =
+        formData.priceBeforeDiscount! *
+        (1 - formData.discountPercentage! / 100);
+      setFormData({
+        ...formData,
+        priceAfterDiscount: parseFloat(discountedPrice.toFixed(2)),
+      });
+    } else {
+      setFormData({
+        ...formData,
+        priceAfterDiscount: formData.priceBeforeDiscount,
+      });
+    }
   };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name) newErrors.name = "اسم المنتج مطلوب";
+    if (!formData.priceBeforeDiscount || formData.priceBeforeDiscount <= 0)
+      newErrors.priceBeforeDiscount = "السعر قبل الخصم يجب أن يكون أكبر من الصفر";
+    if (formData.hasDiscount && formData.discountPercentage <= 0)
+      newErrors.discountPercentage = "نسبة الخصم يجب أن تكون أكبر من الصفر";
+    if (previewImages.length === 0)
+      newErrors.images = "يجب إضافة صورة واحدة على الأقل";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      const productData = {
+        ...formData,
+        priceAfterDiscount: formData.hasDiscount
+          ? formData.priceAfterDiscount
+          : formData.priceBeforeDiscount,
+      };
+      onSave(productData);
+    }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">إدارة المنتجات</h1>
-          <p className="text-muted-foreground mt-2">
-            إدارة وتتبع جميع المنتجات ({filteredProducts.length} منتج)
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleAddProduct}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-background rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          إضافة منتج جديد
-        </motion.button>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center gap-2"
-        >
-          <AlertCircle className="w-5 h-5 text-red-500" />
-          <span className="text-red-500">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="mr-auto p-1 hover:bg-red-500/10 rounded"
-          >
-            <X className="w-4 h-4 text-red-500" />
-          </button>
-        </motion.div>
-      )}
-
-      {/* Stats */}
-      <ProductStats />
-
-      {/* Filters and Search */}
-      <div className="bg-card border border-border/10 rounded-xl p-6">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-          {/* Search */}
-          <div className="relative md:col-span-2">
-            <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="البحث في المنتجات..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-10 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:border-primary/50"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:border-primary/50"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-
-          {/* Sort */}
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [field, order] = e.target.value.split('-');
-              setSortBy(field);
-              setSortOrder(order as "asc" | "desc");
-            }}
-            className="px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:border-primary/50"
-          >
-            <option value="createdAt-desc">الأحدث أولاً</option>
-            <option value="createdAt-asc">الأقدم أولاً</option>
-            <option value="name-asc">الاسم (أ-ي)</option>
-            <option value="name-desc">الاسم (ي-أ)</option>
-            <option value="priceAfterDiscount-asc">السعر (الأقل)</option>
-            <option value="priceAfterDiscount-desc">السعر (الأعلى)</option>
-            <option value="quantity-desc">المخزون (الأعلى)</option>
-            <option value="quantity-asc">المخزون (الأقل)</option>
-          </select>
-
-          {/* View Mode */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-lg transition-colors ${
-                viewMode === "grid" ? "bg-primary text-background" : "hover:bg-primary/10"
-              }`}
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 rounded-lg transition-colors ${
-                viewMode === "list" ? "bg-primary text-background" : "hover:bg-primary/10"
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-          <span className="mr-3 text-muted-foreground">جاري التحميل...</span>
-        </div>
-      )}
-
-      {/* Products Grid/List */}
-      {!isLoading && filteredProducts.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">لا توجد منتجات</h3>
-          <p className="text-muted-foreground mb-6">
-            {searchTerm || selectedCategory !== "الكل"
-              ? "لم يتم العثور على منتجات تطابق معايير البحث"
-              : "لم تقم بإضافة أي منتجات بعد"}
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAddProduct}
-            className="px-6 py-3 bg-primary text-background rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            إضافة منتج جديد
-          </motion.button>
-        </div>
-      ) : !isLoading ? (
-        <div className={`grid gap-6 ${
-          viewMode === "grid" 
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-            : "grid-cols-1"
-        }`}>
-          <AnimatePresence>
-            {filteredProducts.map((product, index) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.05 }}
-                className={`bg-card border border-border/10 rounded-xl overflow-hidden group ${
-                  viewMode === "list" ? "flex" : ""
-                }`}
-              >
-                <div className={`relative ${viewMode === "list" ? "w-48 h-32" : "h-48"}`}>
-                  {product.image ? (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted/20 flex items-center justify-center">
-                      <Package className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                  )}
-                  
-                  {/* Badges */}
-                  <div className="absolute top-2 right-2 flex flex-col gap-1">
-                    {product.priceBeforeDiscount && (
-                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                        -{getDiscountPercentage(product)}%
-                      </span>
-                    )}
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStockStatus(product.quantity).color}`}>
-                      {getStockStatus(product.quantity).label}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex flex-col gap-1">
-                      <button
-                        onClick={() => handleEditProduct(product)}
-                        className="p-2 bg-white/90 hover:bg-white rounded-lg transition-colors"
-                        title="تعديل المنتج"
-                      >
-                        <Edit className="w-4 h-4 text-primary" />
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(product._id)}
-                        className="p-2 bg-white/90 hover:bg-white rounded-lg transition-colors"
-                        title="حذف المنتج"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-bold line-clamp-1 flex-1">{product.name}</h3>
-                    <div className="flex items-center gap-1 ml-2">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      <span className="text-sm">{product.points}</span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">السعر:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-primary">{product.priceAfterDiscount} ريال</span>
-                        {product.priceBeforeDiscount && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            {product.priceBeforeDiscount} ريال
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">المخزون:</span>
-                      <span className="font-medium">{product.quantity} قطعة</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="bg-primary/10 text-primary px-2 py-1 rounded">
-                      {product.category}
-                    </span>
-                    <span>{formatDate(product.createdAt)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/10">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <User className="w-3 h-3" />
-                    </div>
-                    <div className="flex gap-1">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEditProduct(product)}
-                        className="p-1.5 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setShowDeleteConfirm(product._id)}
-                        className="p-1.5 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition-colors"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      ) : null}
-
-      {/* Product Form Modal */}
-      <ProductForm
-        isOpen={showProductForm}
-        onClose={() => {
-          setShowProductForm(false);
-          setSelectedProduct(null);
-        }}
-        product={selectedProduct}
-        onSave={handleSaveProduct}
-        isLoading={isLoading}
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
       />
 
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteConfirm && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowDeleteConfirm(null)}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
-            />
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card border border-border/10 rounded-2xl p-6 w-full max-w-md z-50"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card border border-border/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-50"
+      >
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">
+              {product ? "تعديل المنتج" : "إضافة منتج جديد"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-muted/20 transition-colors"
             >
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="w-8 h-8 text-red-500" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">تأكيد الحذف</h3>
-                <p className="text-muted-foreground mb-6">
-                  هل أنت متأكد من حذف هذا المنتج؟ لا يمكن التراجع عن هذا الإجراء.
-                </p>
-                <div className="flex gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowDeleteConfirm(null)}
-                    className="flex-1 py-2 px-4 bg-muted/20 text-foreground rounded-lg hover:bg-muted/30 transition-colors"
-                  >
-                    إلغاء
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleDeleteProduct(showDeleteConfirm)}
-                    disabled={isLoading}
-                    className="flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
-                  >
-                    {isLoading ? "جاري الحذف..." : "حذف"}
-                  </motion.button>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Images Section - Moved to Top */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                صور المنتج <span className="text-red-500">*</span>
+              </label>
+              {errors.images && (
+                <p className="text-red-500 text-xs mb-2">{errors.images}</p>
+              )}
+
+              <div
+                {...getRootProps()}
+                className="border-2 border-dashed border-border/20 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              >
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    اسحب وأسقط الصور هنا أو انقر للاختيار
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    (يسمح بحد أقصى 5 صور)
+                  </p>
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+
+              {/* Preview Images */}
+              {previewImages.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {previewImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-border/10"
+                    >
+                      <img
+                        src={img}
+                        alt={`Preview ${index}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage(index);
+                        }}
+                        className="absolute top-1 left-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Basic Info Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-2">
+                  اسم المنتج <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 bg-background border ${
+                    errors.name ? "border-red-500" : "border-border/10"
+                  } rounded-lg focus:outline-none focus:ring-1 focus:ring-primary`}
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium mb-2"
+                >
+                  الفئة
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">اختر الفئة</option>
+                  <option value="أنظمة المراقبة">أنظمة المراقبة</option>
+                  <option value="أنظمة التحكم">أنظمة التحكم</option>
+                  <option value="إدارة المباني">إدارة المباني</option>
+                  <option value="كاميرات المراقبة">كاميرات المراقبة</option>
+                  <option value="أنظمة الإنذار">أنظمة الإنذار</option>
+                  <option value="أنظمة الاتصال">أنظمة الاتصال</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Description Section */}
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium mb-2"
+              >
+                الوصف
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Short Description */}
+            <div>
+              <label
+                htmlFor="shortDescription"
+                className="block text-sm font-medium mb-2"
+              >
+                وصف مختصر (اختياري)
+              </label>
+              <textarea
+                id="shortDescription"
+                name="shortDescription"
+                value={formData.shortDescription || ""}
+                onChange={handleChange}
+                rows={2}
+                className="w-full px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Pricing Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="priceBeforeDiscount"
+                  className="block text-sm font-medium mb-2"
+                >
+                  السعر قبل الخصم <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <DollarSign className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <input
+                    type="number"
+                    id="priceBeforeDiscount"
+                    name="priceBeforeDiscount"
+                    min="0"
+                    step="0.01"
+                    value={formData.priceBeforeDiscount}
+                    onChange={(e) => handleNumberChange(e, "priceBeforeDiscount")}
+                    className={`w-full pl-4 pr-10 py-2 bg-background border ${
+                      errors.priceBeforeDiscount
+                        ? "border-red-500"
+                        : "border-border/10"
+                    } rounded-lg focus:outline-none focus:ring-1 focus:ring-primary`}
+                  />
+                </div>
+                {errors.priceBeforeDiscount && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.priceBeforeDiscount}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    htmlFor="priceAfterDiscount"
+                    className="block text-sm font-medium"
+                  >
+                    السعر بعد الخصم
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="hasDiscount"
+                      checked={formData.hasDiscount}
+                      onChange={toggleDiscount}
+                      className="w-4 h-4 text-primary rounded focus:ring-primary"
+                    />
+                    <label
+                      htmlFor="hasDiscount"
+                      className="text-sm text-muted-foreground mr-2"
+                    >
+                      تطبيق خصم
+                    </label>
+                  </div>
+                </div>
+
+                {formData.hasDiscount ? (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <Percent className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <input
+                        type="number"
+                        id="discountPercentage"
+                        name="discountPercentage"
+                        min="0"
+                        max="100"
+                        value={formData.discountPercentage}
+                        onChange={(e) =>
+                          handleNumberChange(e, "discountPercentage")
+                        }
+                        className={`w-full pl-4 pr-10 py-2 bg-background border ${
+                          errors.discountPercentage
+                            ? "border-red-500"
+                            : "border-border/10"
+                        } rounded-lg focus:outline-none focus:ring-1 focus:ring-primary`}
+                        placeholder="نسبة الخصم"
+                      />
+                    </div>
+                    {errors.discountPercentage && (
+                      <p className="text-red-500 text-xs">
+                        {errors.discountPercentage}
+                      </p>
+                    )}
+
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <DollarSign className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <input
+                        type="number"
+                        id="priceAfterDiscount"
+                        name="priceAfterDiscount"
+                        min="0"
+                        step="0.01"
+                        value={formData.priceAfterDiscount}
+                        readOnly
+                        className="w-full pl-4 pr-10 py-2 bg-muted/20 border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <DollarSign className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <input
+                      type="number"
+                      id="priceAfterDiscount"
+                      name="priceAfterDiscount"
+                      min="0"
+                      step="0.01"
+                      value={formData.priceBeforeDiscount}
+                      readOnly
+                      className="w-full pl-4 pr-10 py-2 bg-muted/20 border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quantity and Tag Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="quantity"
+                  className="block text-sm font-medium mb-2"
+                >
+                  الكمية المتاحة
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  min="0"
+                  value={formData.quantity}
+                  onChange={(e) => handleNumberChange(e, "quantity")}
+                  className="w-full px-4 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="tag" className="block text-sm font-medium mb-2">
+                  العلامة (تاغ) <span className="text-xs text-muted-foreground">(اختياري)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <Tag className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <input
+                    type="text"
+                    id="tag"
+                    name="tag"
+                    value={formData.tag || ""}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-10 py-2 bg-background border border-border/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  خيارات إضافية
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="showReviews"
+                      name="showReviews"
+                      checked={formData.showReviews}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          showReviews: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary rounded focus:ring-primary"
+                    />
+                    <label
+                      htmlFor="showReviews"
+                      className="text-sm text-muted-foreground mr-2"
+                    >
+                      عرض التقييمات
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-border/10">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="px-6 py-2 bg-muted/20 text-foreground rounded-lg hover:bg-muted/30 transition-colors disabled:opacity-50"
+              >
+                إلغاء
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={isLoading}
+                className="flex items-center gap-2 px-6 py-2 bg-primary text-background rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    {product ? "حفظ التغييرات" : "إضافة المنتج"}
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </>
   );
 }

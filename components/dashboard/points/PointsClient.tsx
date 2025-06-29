@@ -11,17 +11,20 @@ import {
   X,
   Save,
   Loader2,
-  Eye,
-  EyeOff,
-  CheckCircle2,
+  Star,
+  DollarSign,
+  BarChart3,
+  GripVertical,
 } from "lucide-react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
-// تعريف الـ Interface
+// Interface definition
 interface PointsPackage {
   _id: string;
   points: number;
   price: number;
   isActive: boolean;
+  order?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -32,14 +35,14 @@ interface PointsFormData {
   isActive: boolean;
 }
 
-// Mock API - استبدل هذا بطلب API الحقيقي
+// Mock API - replace with real API
 const pointsAPI = {
   getAllPointsPackages: async () => {
     return {
       data: [
-        { _id: "1", points: 1000, price: 100, isActive: true },
-        { _id: "2", points: 5000, price: 450, isActive: true },
-        { _id: "3", points: 10000, price: 850, isActive: false },
+        { _id: "1", points: 1000, price: 100, isActive: true, order: 1 },
+        { _id: "2", points: 5000, price: 450, isActive: true, order: 2 },
+        { _id: "3", points: 10000, price: 850, isActive: true, order: 3 },
       ],
     };
   },
@@ -48,6 +51,9 @@ const pointsAPI = {
   },
   updatePointsPackage: async (id: string, data: { pointsAmount: number; price: number; isActive: boolean }) => {
     return { data: { ...data, _id: id } };
+  },
+  updatePackagesOrder: async (packages: PointsPackage[]) => {
+    return { success: true };
   },
   deletePointsPackage: async (id: string) => {
     return { success: true };
@@ -77,7 +83,9 @@ export default function PointsClient() {
     setError(null);
     try {
       const response = await pointsAPI.getAllPointsPackages();
-      setPackages(response.data);
+      // Sort packages by order if exists
+      const sortedPackages = response.data.sort((a, b) => (a.order || 0) - (b.order || 0));
+      setPackages(sortedPackages);
     } catch (error: any) {
       setError(error.message || "حدث خطأ أثناء جلب البيانات");
     } finally {
@@ -114,24 +122,28 @@ export default function PointsClient() {
     resetForm();
   };
 
-  const validateForm = (): boolean => {
-    const errors: { [key: string]: string } = {};
+const validateForm = (): boolean => {
+  const newErrors: { [key: string]: string } = {};
 
-    if (!formData.points.trim()) {
-      errors.points = "عدد النقاط مطلوب";
-    } else if (isNaN(Number(formData.points)) || Number(formData.points) <= 0) {
-      errors.points = "عدد النقاط يجب أن يكون رقماً موجباً";
-    }
+  if (!formData.points.trim()) {
+    newErrors.points = "عدد النقاط مطلوب";
+  } else if (isNaN(Number(formData.points))) {
+    newErrors.points = "عدد النقاط يجب أن يكون رقماً";
+  } else if (Number(formData.points) <= 0) {
+    newErrors.points = "عدد النقاط يجب أن يكون رقماً موجباً";
+  }
 
-    if (!formData.price.trim()) {
-      errors.price = "السعر مطلوب";
-    } else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
-      errors.price = "السعر يجب أن يكون رقماً موجباً";
-    }
+  if (!formData.price.trim()) {
+    newErrors.price = "السعر مطلوب";
+  } else if (isNaN(Number(formData.price))) {
+    newErrors.price = "السعر يجب أن يكون رقماً";
+  } else if (Number(formData.price) <= 0) {
+    newErrors.price = "السعر يجب أن يكون رقماً موجباً";
+  }
 
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  setFormErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,17 +192,37 @@ export default function PointsClient() {
     }
   };
 
-  const togglePackageStatus = async (id: string, currentStatus: boolean) => {
+  // Handle drag and drop reordering
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(packages);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update order property based on new index
+    const updatedPackages = items.map((item, index) => ({
+      ...item,
+      order: index + 1
+    }));
+
+    setPackages(updatedPackages);
+
     try {
-      setIsLoading(true);
-      await pointsAPI.updatePointsPackage(id, { isActive: !currentStatus });
-      await fetchPackages();
+      await pointsAPI.updatePackagesOrder(updatedPackages);
     } catch (error: any) {
-      setError(error.message || "حدث خطأ أثناء تغيير الحالة");
-    } finally {
-      setIsLoading(false);
+      setError(error.message || "حدث خطأ أثناء حفظ الترتيب الجديد");
+      // Revert to previous state if API call fails
+      fetchPackages();
     }
   };
+
+  // Calculate stats
+  const totalPackages = packages.length;
+  const activePackages = packages.filter(pkg => pkg.isActive).length;
+  const totalPoints = packages.reduce((sum, pkg) => sum + pkg.points, 0);
+  const totalValue = packages.reduce((sum, pkg) => sum + pkg.price, 0);
+  const avgPointValue = totalPoints > 0 ? (totalValue / totalPoints).toFixed(2) : "0";
 
   return (
     <div className="space-y-6">
@@ -213,27 +245,101 @@ export default function PointsClient() {
         </motion.button>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-border/10 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Package className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">إجمالي الحزم</p>
+              <h3 className="text-2xl font-bold">{totalPackages}</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{activePackages} حزمة نشطة</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card border border-border/10 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Star className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">إجمالي النقاط</p>
+              <h3 className="text-2xl font-bold">{totalPoints.toLocaleString()}</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">في جميع الحزم</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card border border-border/10 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-green-500/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-green-500" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">إجمالي القيمة</p>
+              <h3 className="text-2xl font-bold">{totalValue.toLocaleString()} ريال</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">قيمة جميع الحزم</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card border border-border/10 rounded-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-purple-500/10 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-purple-500" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">متوسط قيمة النقطة</p>
+              <h3 className="text-2xl font-bold">{avgPointValue} ريال</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">لكل نقطة</p>
+        </motion.div>
+      </div>
+
       {/* Error Message */}
       {error && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-2 text-sm"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-4 flex items-start gap-3"
         >
-          <AlertCircle className="w-4 h-4 text-red-500" />
-          <span className="text-red-500">{error}</span>
+          <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+          <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
           <button
             onClick={() => setError(null)}
-            className="mr-auto p-1 hover:bg-red-500/10 rounded"
+            className="mr-auto p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
           >
-            <X className="w-3 h-3 text-red-500" />
+            <X className="w-3 h-3 text-red-500 dark:text-red-400" />
           </button>
         </motion.div>
       )}
 
       {/* Packages Table */}
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
-        {isLoading ? (
+        {isLoading && packages.length === 0 ? (
           <div className="flex items-center justify-center p-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
@@ -250,82 +356,83 @@ export default function PointsClient() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    النقاط
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    السعر (ريال سعودي)
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    قيمة النقطة
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    الحالة
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    الإجراءات
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {packages.map((pkg) => (
-                  <tr key={pkg._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {pkg.points?.toLocaleString() || '0'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {pkg.price?.toLocaleString() || '0'} ر.س
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {pkg.price && pkg.points ? (pkg.price / pkg.points).toFixed(2) : '0.00'} ر.س
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => togglePackageStatus(pkg._id, pkg.isActive)}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          pkg.isActive
-                            ? "bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300"
-                        }`}
-                      >
-                        {pkg.isActive ? (
-                          <span className="flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> نشط
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <EyeOff className="w-3 h-3" /> غير نشط
-                          </span>
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => openModal(pkg)}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"
-                          title="تعديل"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(pkg._id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
-                          title="حذف"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="packages">
+              {(provided) => (
+                <div className="overflow-x-auto" ref={provided.innerRef} {...provided.droppableProps}>
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                    <thead className="bg-gray-50 dark:bg-gray-800">
+                      <tr>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          الترتيب
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          النقاط
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          السعر (ريال سعودي)
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          قيمة النقطة
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          الإجراءات
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                      {packages.map((pkg, index) => (
+                        <Draggable key={pkg._id} draggableId={pkg._id} index={index}>
+                          {(provided) => (
+                            <tr
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap" {...provided.dragHandleProps}>
+                                <div className="flex items-center justify-end gap-2">
+                                  <span className="text-sm text-gray-500">{index + 1}</span>
+                                  <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                {pkg.points?.toLocaleString() || '0'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {pkg.price?.toLocaleString() || '0'} ر.س
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {pkg.price && pkg.points ? (pkg.price / pkg.points).toFixed(2) : '0.00'} ر.س
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex justify-end space-x-2">
+                                  <button
+                                    onClick={() => openModal(pkg)}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1"
+                                    title="تعديل"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setShowDeleteConfirm(pkg._id)}
+                                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+                                    title="حذف"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         )}
       </div>
 
@@ -403,19 +510,6 @@ export default function PointsClient() {
                       {formErrors.price}
                     </p>
                   )}
-                </div>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) => handleInputChange("isActive", e.target.checked)}
-                    className="w-4 h-4 text-primary rounded focus:ring-primary border-gray-300 dark:border-gray-600"
-                  />
-                  <label htmlFor="isActive" className="text-sm">
-                    حزمة نشطة
-                  </label>
                 </div>
 
                 <div className="flex gap-3 pt-4">
