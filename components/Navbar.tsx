@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X, UserCircle, LogOut } from "lucide-react";
-import { ThemeToggle } from './Theme-toggle';
+import { ThemeToggle } from "./Theme-toggle";
 import { useAuthStore } from "@/stores/authStore";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
   { href: "/about", label: "من نحن" },
+  { href: "/product", label: "المنتجات" },
   { href: "/info", label: "تواصل معنا" },
 ];
 
@@ -19,7 +20,6 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuthStore();
   console.log("User role:", user?.role);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,32 +71,29 @@ export default function Navbar() {
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </Link>
               ))}
-{user && (
-  user.role === 'admin' ? (
-    <Link
-      href="/admin"
-      className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
-    >
-      <span>لوحة التحكم</span>
-      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-    </Link>
-  ) : user.role === 'user' ? (
-            <Link
+              {user &&
+                (user.role === "admin" ? (
+                  <Link
+                    href="/admin"
+                    className="text-foreground/90 hover:text-foreground transition-colors relative group py-2"
+                  >
+                    <span>لوحة التحكم</span>
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                  </Link>
+                ) : user.role === "user" ? (
+                  <Link
                     href="/profile"
                     className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors"
                   >
                     <UserCircle className="w-5 h-5" />
                     <span>حسابي</span>
                   </Link>
-  ) : null
-)}
+                ) : null)}
 
-      
               <ThemeToggle />
-              
+
               {user ? (
                 <div className="flex items-center gap-4">
-         
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 text-foreground/90 hover:text-foreground transition-colors bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-full"
@@ -155,7 +152,7 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                
+
                 {user ? (
                   <>
                     <Link

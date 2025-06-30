@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,127 +19,25 @@ import {
 import AddToCartButton from "./AddToCartButton";
 import CartIcon from "./CartIcon";
 import QuickAddToCart from "./QuickAddToCart";
+import { productAPI } from "@/lib/api/auth";
+import RatingComponent from "./RatingComponent";
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   description: string;
-  price: number;
-  originalPrice?: number;
+  shortDescription?: string;
+  priceAfterDiscount: number;
+  priceBeforeDiscount?: number;
   category: string;
-  rating: number;
-  reviews: number;
-  image: string;
+  tag?: string;
+  rating?: number;
+  reviews?: number;
+  showReviews?: boolean;
   images: string[];
-  inStock: boolean;
-  featured: boolean;
+  quantity: number;
   discount?: number;
-  tags: string[];
 }
-
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: "نظام المراقبة الذكي Pro",
-    description: "نظام مراقبة متطور مع تقنيات الذكاء الاصطناعي وتحليل الفيديو في الوقت الفعلي",
-    price: 4500,
-    originalPrice: 5000,
-    category: "أنظمة المراقبة",
-    rating: 4.8,
-    reviews: 124,
-    image: "https://images.pexels.com/photos/3205735/pexels-photo-3205735.jpeg",
-    images: [
-      "https://images.pexels.com/photos/3205735/pexels-photo-3205735.jpeg",
-      "https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg",
-    ],
-    inStock: true,
-    featured: true,
-    discount: 10,
-    tags: ["جديد", "الأكثر مبيعاً"],
-  },
-  {
-    id: 2,
-    name: "بوابة التحكم الذكية",
-    description: "نظام تحكم متقدم بالدخول مع تقنية التعرف على الوجه والبصمة",
-    price: 3200,
-    category: "أنظمة التحكم",
-    rating: 4.6,
-    reviews: 89,
-    image: "https://images.pexels.com/photos/279810/pexels-photo-279810.jpeg",
-    images: [
-      "https://images.pexels.com/photos/279810/pexels-photo-279810.jpeg",
-    ],
-    inStock: true,
-    featured: false,
-    tags: ["تقنية حديثة"],
-  },
-  {
-    id: 3,
-    name: "نظام إدارة المباني الذكية",
-    description: "حل شامل لإدارة وتشغيل المباني مع أنظمة التحكم الآلي",
-    price: 8500,
-    category: "إدارة المباني",
-    rating: 4.9,
-    reviews: 67,
-    image: "https://images.pexels.com/photos/3182530/pexels-photo-3182530.jpeg",
-    images: [
-      "https://images.pexels.com/photos/3182530/pexels-photo-3182530.jpeg",
-    ],
-    inStock: true,
-    featured: true,
-    tags: ["متقدم", "شامل"],
-  },
-  {
-    id: 4,
-    name: "كاميرا مراقبة خارجية 4K",
-    description: "كاميرا عالية الدقة مقاومة للطقس مع رؤية ليلية متطورة",
-    price: 850,
-    originalPrice: 950,
-    category: "كاميرات المراقبة",
-    rating: 4.4,
-    reviews: 203,
-    image: "https://images.pexels.com/photos/96612/pexels-photo-96612.jpeg",
-    images: [
-      "https://images.pexels.com/photos/96612/pexels-photo-96612.jpeg",
-    ],
-    inStock: true,
-    featured: false,
-    discount: 11,
-    tags: ["عرض خاص"],
-  },
-  {
-    id: 5,
-    name: "جهاز إنذار ذكي",
-    description: "نظام إنذار متطور مع إشعارات فورية على الهاتف المحمول",
-    price: 1200,
-    category: "أنظمة الإنذار",
-    rating: 4.3,
-    reviews: 156,
-    image: "https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg",
-    images: [
-      "https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg",
-    ],
-    inStock: false,
-    featured: false,
-    tags: ["نفد المخزون"],
-  },
-  {
-    id: 6,
-    name: "نظام الصوت والاتصال الداخلي",
-    description: "نظام اتصال داخلي متطور مع جودة صوت عالية",
-    price: 2100,
-    category: "أنظمة الاتصال",
-    rating: 4.5,
-    reviews: 78,
-    image: "https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg",
-    images: [
-      "https://images.pexels.com/photos/442150/pexels-photo-442150.jpeg",
-    ],
-    inStock: true,
-    featured: false,
-    tags: ["جودة عالية"],
-  },
-];
 
 const categories = [
   "جميع المنتجات",
@@ -152,7 +50,8 @@ const categories = [
 ];
 
 export default function StoreClient() {
-  const [products] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("جميع المنتجات");
   const [sortBy, setSortBy] = useState("featured");
@@ -160,40 +59,53 @@ export default function StoreClient() {
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [showFilters, setShowFilters] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "جميع المنتجات" || product.category === selectedCategory;
-    const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
-    
-    return matchesSearch && matchesCategory && matchesPrice;
-  });
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const params = {
+          category: selectedCategory === "جميع المنتجات" ? undefined : selectedCategory,
+          search: searchTerm,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          sortBy: sortBy === "featured" ? undefined : sortBy,
+        };
+        
+        const { success, products } = await productAPI.getAllProducts(params);
+        if (success) {
+          console.log(`sucess   `)
+          console.log(products)
+          setProducts(products.map((product: any) => ({
+        
+            ...product,
+            discount: product.priceBeforeDiscount
+              ? Math.round((1 - product.priceAfterDiscount / product.priceBeforeDiscount) * 100)
+              : undefined
+          })));
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.price - b.price;
-      case "price-high":
-        return b.price - a.price;
-      case "rating":
-        return b.rating - a.rating;
-      case "name":
-        return a.name.localeCompare(b.name);
-      case "featured":
-      default:
-        return b.featured ? 1 : -1;
-    }
-  });
+    const debounceTimer = setTimeout(() => {
+      fetchProducts();
+    }, 300);
 
-  const handleAddToCart = (productId: number, quantity: number = 1) => {
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm, selectedCategory, sortBy, priceRange]);
+
+  const handleAddToCart = (productId: string, quantity: number = 1) => {
     setCartCount(prev => prev + quantity);
     console.log(`Added product ${productId} with quantity ${quantity} to cart`);
   };
 
-  const toggleWishlist = (productId: number) => {
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -334,7 +246,7 @@ export default function StoreClient() {
         {/* Results Count and Cart */}
         <div className="flex justify-between items-center mb-6">
           <p className="text-muted-foreground">
-            عرض {sortedProducts.length} من {products.length} منتج
+            {loading ? "جاري التحميل..." : `عرض ${products.length} منتج`}
           </p>
           <div className="flex items-center gap-4">
             <CartIcon itemCount={cartCount} />
@@ -342,7 +254,13 @@ export default function StoreClient() {
         </div>
 
         {/* Products Grid/List */}
-        {sortedProducts.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="bg-card border border-border/10 rounded-xl overflow-hidden h-96 animate-pulse" />
+            ))}
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">لا توجد منتجات</h3>
@@ -356,7 +274,7 @@ export default function StoreClient() {
               ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
               : "grid-cols-1"
           }`}>
-            {sortedProducts.map((product, index) => (
+            {products.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -366,13 +284,17 @@ export default function StoreClient() {
                   viewMode === "list" ? "flex" : ""
                 }`}
               >
+
                 <div className={`relative ${viewMode === "list" ? "w-64 h-48" : "h-48"}`}>
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+                  {product.images.length > 0 && (
+                    <Image
+  src={`http://localhost:4000/uploads/${product.images[0]}`}
+                      alt={product.name}
+                      fill
+                       unoptimized={true} 
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  )}
                   
                   {/* Badges */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
@@ -381,12 +303,12 @@ export default function StoreClient() {
                         -{product.discount}%
                       </span>
                     )}
-                    {product.featured && (
+                    {product.tag && (
                       <span className="bg-primary text-background px-2 py-1 rounded-full text-xs">
-                        مميز
+                        {product.tag}
                       </span>
                     )}
-                    {!product.inStock && (
+                    {product.quantity <= 0 && (
                       <span className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs">
                         نفد المخزون
                       </span>
@@ -423,31 +345,32 @@ export default function StoreClient() {
                 <div className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-lg font-bold line-clamp-1">{product.name}</h3>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span>{product.rating}</span>
-                      <span className="text-muted-foreground">({product.reviews})</span>
-                    </div>
+                    {product.showReviews && product.rating && (
+                      <RatingComponent 
+                        rating={product.rating} 
+                        reviews={product.reviews || 0} 
+                      />
+                    )}
                   </div>
+                  
+                  {product.shortDescription && (
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                      {product.shortDescription}
+                    </p>
+                  )}
                   
                   <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                     {product.description}
                   </p>
 
-                  <div className="flex items-center gap-2 mb-4">
-                    {product.tags.map((tag) => (
-                      <span key={tag} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-primary">{product.price} ريال</span>
-                      {product.originalPrice && (
+                      <span className="text-xl font-bold text-primary">
+                        {product.priceAfterDiscount} ريال
+                      </span>
+                      {product.priceBeforeDiscount && (
                         <span className="text-sm text-muted-foreground line-through">
-                          {product.originalPrice} ريال
+                          {product.priceBeforeDiscount} ريال
                         </span>
                       )}
                     </div>
@@ -455,7 +378,7 @@ export default function StoreClient() {
                     <AddToCartButton
                       productId={product.id}
                       productName={product.name}
-                      disabled={!product.inStock}
+                      disabled={product.quantity <= 0}
                       onAddToCart={handleAddToCart}
                     />
                   </div>
@@ -476,4 +399,3 @@ export default function StoreClient() {
     </div>
   );
 }
-

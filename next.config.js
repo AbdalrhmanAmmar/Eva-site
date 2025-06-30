@@ -1,19 +1,20 @@
-// next.config.js
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  trailingSlash: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'raw.githubusercontent.com',
-        pathname: '/**',
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+      // يمكنك إضافة المزيد من النطاقات هنا حسب الحاجة
     ],
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

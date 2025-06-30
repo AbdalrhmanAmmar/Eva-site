@@ -1,5 +1,5 @@
-import ProductsClient from "@/components/dashboard/Product/ProductsClient";
 import { Metadata } from "next";
+import ProductsClient from "../../../components/dashboard/Product/ProductsClient";
 
 export const metadata: Metadata = {
   title: "EVA - إدارة المنتجات",
