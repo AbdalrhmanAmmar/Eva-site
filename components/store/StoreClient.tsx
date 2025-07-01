@@ -24,6 +24,7 @@ import RatingComponent from "./RatingComponent";
 
 interface Product {
   id: string;
+   _id?: any;
   name: string;
   description: string;
   shortDescription?: string;
@@ -313,6 +314,7 @@ export default function StoreClient() {
                         نفد المخزون
                       </span>
                     )}
+
                   </div>
 
                   {/* Actions */}
@@ -328,7 +330,8 @@ export default function StoreClient() {
                       <Heart className="w-4 h-4" />
                     </button>
                     <Link
-                      href={`/store/product/${product.id}`}
+                        href={`/product/${product?._id.toString()  || '2'}`}
+
                       className="p-2 bg-white/80 hover:bg-white rounded-full transition-colors"
                     >
                       <Eye className="w-4 h-4" />
@@ -340,6 +343,7 @@ export default function StoreClient() {
                       <ShoppingCart className="w-4 h-4" />
                     </button>
                   </div>
+       
                 </div>
 
                 <div className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
@@ -382,6 +386,12 @@ export default function StoreClient() {
                       onAddToCart={handleAddToCart}
                     />
                   </div>
+                  {product.showReviews && (
+                                                          <h2 className="text-red-500">hello</h2>
+
+
+                  )}
+
                 </div>
               </motion.div>
             ))}

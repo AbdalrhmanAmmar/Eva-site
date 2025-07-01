@@ -18,6 +18,7 @@ const api = axios.create({
   },
 });
 
+
 // إضافة التوكن للطلبات
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
@@ -268,14 +269,33 @@ export const productAPI = {
   },
 
   // جلب منتج واحد عبر ID
-  getProductById: async (id: string): Promise<{ success: boolean; product: any }> => {
-    try {
-      const response = await api.get(`/products/${id}`);
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "حدث خطأ أثناء جلب المنتج");
+getProductById: async (id: string): Promise<{ success: boolean; product: any | null }> => {
+  try {
+    const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id);
+    if (!isValidObjectId(id)) {
+      return { success: false, product: null };
     }
-  },
+
+    const response = await api.get(`/products/${id}`);
+
+    if (!response.data?.success || !response.data?.product) {
+      return { success: false, product: null };
+    }
+
+    const product = response.data.product;
+    return {
+      success: true,
+      product: {
+        ...product,
+        id: product._id?.toString?.() ?? product.id,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return { success: false, product: null };
+  }
+},
+
 
   // جلب منتجات حسب التصنيف
   getProductsByCategory: async (category: string): Promise<{ success: boolean; products: any[] }> => {
@@ -321,6 +341,58 @@ export const productAPI = {
     }
   },
 };
+export const reviewAPI = {
+  // إنشاء مراجعة
+  addReview: async (data: { productId: string; rating: number; comment?: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await api.post("/reviews", data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ أثناء إضافة المراجعة");
+    }
+  },
+
+  // جلب جميع مراجعات منتج
+  getReviewsByProduct: async (productId: string): Promise<{ success: boolean; count: number; reviews: any[] }> => {
+    try {
+      const response = await api.get(`/reviews/product/${productId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ أثناء جلب المراجعات");
+    }
+  },
+
+  // حذف مراجعة
+  deleteReview: async (id: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await api.delete(`/reviews/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ أثناء حذف المراجعة");
+    }
+  },
+
+  // تعديل مراجعة
+  updateReview: async (id: string, data: { rating?: number; comment?: string }): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await api.put(`/reviews/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ أثناء تعديل المراجعة");
+    }
+  },
+
+  // جلب متوسط تقييم منتج
+  getAverageRating: async (productId: string): Promise<{ success: boolean; averageRating: number; numberOfReviews: number }> => {
+    try {
+      const response = await api.get(`/reviews/average/${productId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "حدث خطأ أثناء جلب متوسط التقييم");
+    }
+  },
+};
+
 
 
 export default api;
