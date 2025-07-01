@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, Heart, ChevronLeft, ChevronRight, ShoppingCart, Eye } from "lucide-react";
+import { Star, Heart, ChevronLeft, ChevronRight, ShoppingCart, Eye, Package, AlertCircle } from "lucide-react";
 import { notFound } from 'next/navigation';
 import Breadcrumb from "@/components/ProductId/Breadcrumb";
 import AddToCartButton from "@/components/store/AddToCartButton";
@@ -22,21 +22,35 @@ interface Product {
   priceBeforeDiscount?: number;
   category: string;
   tag?: string;
-  rating?: number;
-  reviews?: any[];
+    averageRating?: number;
+    numberOfReviews?: number;
   showReviews?: boolean;
   images: string[];
   quantity: number;
+  maxQuantity?: number;
   discount?: number;
+  showDiscount?: boolean;
   specifications?: any[];
+  showQuantity?: boolean;
+  showTag?: boolean;
+  showShortDescription?: boolean;
 }
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [wishlist, setWishlist] = useState<string[]>([]);
+
+  // إعدادات العرض - يمكن جلبها من API أو context
+  const displaySettings = {
+    showQuantity: true,
+    showDiscount: true,
+    showTag: true,
+    showShortDescription: true,
+    showReviews: true,
+    showRating: true
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -62,7 +76,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           discount: data.product.discount || 0,
           rating: data.product.rating || 0,
           tag: data.product.tag || '',
-          priceBeforeDiscount: data.product.priceBeforeDiscount || data.product.priceAfterDiscount
+          priceBeforeDiscount: data.product.priceBeforeDiscount || data.product.priceAfterDiscount,
+          maxQuantity: data.product.maxQuantity || 100,
+          showQuantity: data.product.showQuantity !== undefined ? data.product.showQuantity : true,
+          showDiscount: data.product.showDiscount !== undefined ? data.product.showDiscount : true,
+          showTag: data.product.showTag !== undefined ? data.product.showTag : true,
+          averageRating: data.product.averageRating || 0,
+        numberOfReviews: data.product.numberOfReviews || 0,
+          showShortDescription: data.product.showShortDescription !== undefined ? data.product.showShortDescription : true,
+          showReviews: data.product.showReviews !== undefined ? data.product.showReviews : true,
+          showRating: data.product.showRating !== undefined ? data.product.showRating : true
         };
 
         setProduct(productData);
@@ -114,57 +137,57 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Breadcrumb Navigation */}
         <Breadcrumb 
           items={[
-            { name: "الرئيسية", href: "/", className: "text-blue-400 hover:text-blue-300" },
-            { name: "المتجر", href: "/store", className: "text-blue-400 hover:text-blue-300" },
-            { name: product.category, href: `/store?category=${product.category}`, className: "text-blue-400 hover:text-blue-300" },
-            { name: product.name, href: `#`, className: "text-gray-400" },
+            { name: "الرئيسية", href: "/" },
+            { name: "المتجر", href: "/store" },
+            { name: product.category, href: `/store?category=${product.category}` },
+            { name: product.name, href: `#` },
           ]}
           className="text-sm mb-6"
         />
 
         <div className="mt-6 lg:mt-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Product Gallery */}
+            {/* معرض المنتج */}
             <div className="lg:w-1/2">
               <ProductGallery 
                 images={product.images} 
                 name={product.name}
                 className="rounded-lg border border-gray-700 shadow-lg"
-                onImageChange={(index) => setCurrentImageIndex(index)}
               />
             </div>
 
-            {/* Product Info */}
+            {/* معلومات المنتج */}
             <div className="lg:w-1/2">
               <div className="sticky top-4">
                 <div className="space-y-6">
-                  {/* Title and Rating */}
+                  {/* العنوان والتقييم */}
                   <div>
                     <h1 className="text-3xl font-bold text-white">{product.name}</h1>
-                    {product.showReviews && (
-                      <div className="mt-3 flex items-center gap-3">
-                        <RatingComponent 
-                          rating={product.rating || 0} 
-                          reviews={product.reviews?.length || 0} 
-                          size="lg"
-                          className="text-yellow-400"
-                        />
-                        <span className="text-gray-400 text-sm">
-                          ({product.reviews?.length || 0} تقييمات)
-                        </span>
-                      </div>
-                    )}
+                    
+                {product.showReviews && (
+  <div className="mt-3 flex items-center gap-3">
+    <RatingComponent 
+      rating={product.averageRating || 0} 
+      reviews={product.numberOfReviews! || 0} 
+      size="lg"
+      className="text-yellow-400"
+    />
+    <span className="text-gray-400 text-sm">
+      ({product.numberOfReviews || 0} تقييمات)
+    </span>
+  </div>
+)}
                   </div>
 
-                  {/* Price */}
+                  {/* السعر والخصم */}
                   <div className="flex items-center gap-4">
                     <span className="text-3xl font-bold text-blue-400">
                       {product.priceAfterDiscount.toLocaleString()} ر.س
                     </span>
-                    {product.priceBeforeDiscount && product.priceBeforeDiscount > product.priceAfterDiscount && (
+                    
+                    {product.showDiscount && product.priceBeforeDiscount && product.priceBeforeDiscount > product.priceAfterDiscount && (
                       <>
                         <span className="text-xl text-gray-400 line-through">
                           {product.priceBeforeDiscount.toLocaleString()} ر.س
@@ -178,23 +201,60 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     )}
                   </div>
 
-                  {/* Short Description */}
-                  <p className="text-gray-300 text-lg leading-relaxed">
-                    {product.shortDescription}
-                  </p>
+                  {/* الوصف المختصر */}
+                  {product.showShortDescription && (
+                    <p className="text-gray-300 text-lg leading-relaxed">
+                      {product.shortDescription}
+                    </p>
+                  )}
 
-                  {/* Tags */}
-                  {product.tag && (
+                  {/* العلامة */}
+                  {product.showTag && product.tag && (
                     <div className="flex flex-wrap gap-2">
-                      <span 
-                        className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm"
-                      >
+                      <span className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">
                         {product.tag}
                       </span>
                     </div>
                   )}
 
-                  {/* Add to Cart */}
+                  {/* الكمية المتبقية */}
+                  {product.showQuantity && (
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-gray-400 flex items-center">
+                          <Package className="w-4 h-4 mr-1" />
+                          الكمية المتاحة
+                        </span>
+                        <span className={`font-medium ${
+                          product.quantity <= 5 ? 'text-red-400' : 'text-green-400'
+                        }`}>
+                          {product.quantity} وحدة
+                        </span>
+                      </div>
+                      
+                      <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${
+                            product.quantity <= 5 ? 'bg-red-400' : 
+                            product.quantity <= 15 ? 'bg-yellow-400' : 'bg-green-400'
+                          }`}
+                          style={{ 
+                            width: `${(product.quantity / (product.maxQuantity || 100)) * 100}%`,
+                            transition: 'width 0.5s ease-in-out'
+                          }}
+                        />
+                      </div>
+                      
+                      {product.quantity <= 5 && (
+                        <div className="text-xs text-red-400 mt-1 flex items-center">
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          الكمية محدودة!
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* إضافة إلى السلة */}
                   <div className="pt-4">
                     <AddToCartButton 
                       productId={product.id}
@@ -202,14 +262,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       price={product.priceAfterDiscount}
                       image={product.images[0]}
                       disabled={product.quantity <= 0}
-                      className="w-full py-3 text-lg bg-blue-700 hover:bg-blue-600 text-white rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                      className={`w-full py-3 text-lg rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                        product.quantity <= 0 
+                          ? 'bg-gray-600 cursor-not-allowed' 
+                          : 'bg-blue-700 hover:bg-blue-600 text-white'
+                      }`}
                     >
                       <ShoppingCart className="w-5 h-5" />
-                      أضف إلى السلة
+                      {product.quantity <= 0 ? 'نفذ من المخزون' : 'أضف إلى السلة'}
                     </AddToCartButton>
                   </div>
 
-                  {/* Quick Info */}
+                  {/* معلومات سريعة */}
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-700">
                     <div className="flex items-center gap-2">
                       <span className="text-gray-400">التصنيف:</span>
@@ -225,7 +289,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
 
-                  {/* Wishlist Button */}
+                  {/* المفضلة */}
                   <button
                     onClick={() => toggleWishlist(product.id)}
                     className={`mt-4 flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -246,14 +310,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* Product Details Tabs */}
+          {/* علامات التبويب */}
           <div className="mt-12 bg-gray-800 rounded-lg border border-gray-700 shadow-lg overflow-hidden">
-            <ProductTabs 
-              description={product.description}
-              specifications={product.specifications}
-              reviews={product.reviews}
-              className="text-gray-300"
-            />
+          <ProductTabs 
+  description={product.description}
+  specifications={product.specifications || []}
+  productId={product.id}
+  averageRating={product.showReviews ? product.averageRating : undefined}
+  numberOfReviews={product.showReviews ? product.numberOfReviews : undefined}
+  showReviews={product.showReviews}
+  className="text-gray-300"
+/>
           </div>
         </div>
       </div>

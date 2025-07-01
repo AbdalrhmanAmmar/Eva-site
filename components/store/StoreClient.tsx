@@ -15,6 +15,7 @@ import {
   List,
   SlidersHorizontal,
   ShoppingCart,
+  AlertCircle,
 } from "lucide-react";
 import AddToCartButton from "./AddToCartButton";
 import CartIcon from "./CartIcon";
@@ -22,9 +23,14 @@ import QuickAddToCart from "./QuickAddToCart";
 import { productAPI } from "@/lib/api/auth";
 import RatingComponent from "./RatingComponent";
 
+interface ProductImage {
+  url: string;
+  isMain: boolean;
+}
+
 interface Product {
   id: string;
-   _id?: any;
+  _id?: string;
   name: string;
   description: string;
   shortDescription?: string;
@@ -32,12 +38,15 @@ interface Product {
   priceBeforeDiscount?: number;
   category: string;
   tag?: string;
-  rating?: number;
-  reviews?: number;
+  averageRating?: number;
+  numberOfReviews?: number;
   showReviews?: boolean;
-  images: string[];
+  showDiscount?: boolean;
+  showQuantity?: boolean;
+  images: ProductImage[];
   quantity: number;
   discount?: number;
+  maxQuantity?: number;
 }
 
 const categories = [
@@ -77,14 +86,12 @@ export default function StoreClient() {
         
         const { success, products } = await productAPI.getAllProducts(params);
         if (success) {
-          console.log(`sucess   `)
-          console.log(products)
           setProducts(products.map((product: any) => ({
-        
             ...product,
             discount: product.priceBeforeDiscount
               ? Math.round((1 - product.priceAfterDiscount / product.priceBeforeDiscount) * 100)
-              : undefined
+              : undefined,
+            images: product.images || [] // تأكد من وجود مصفوفة images
           })));
         }
       } catch (error) {
@@ -100,6 +107,18 @@ export default function StoreClient() {
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm, selectedCategory, sortBy, priceRange]);
+
+  const getMainImage = (product: Product) => {
+    if (!product.images || product.images.length === 0) return null;
+    const mainImg = product.images.find(img => img.isMain);
+    return mainImg || product.images[0];
+  };
+
+const getImageUrl = (imagePath: string | undefined): string => {
+  if (!imagePath) return '/placeholder.jpg'; // صورة افتراضية إذا كان المسار غير موجود
+  if (imagePath.startsWith('http') || imagePath.startsWith('blob:')) return imagePath;
+  return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${imagePath}`;
+};
 
   const handleAddToCart = (productId: string, quantity: number = 1) => {
     setCartCount(prev => prev + quantity);
@@ -275,126 +294,201 @@ export default function StoreClient() {
               ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
               : "grid-cols-1"
           }`}>
-            {products.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`bg-card border border-border/10 rounded-xl overflow-hidden group ${
-                  viewMode === "list" ? "flex" : ""
-                }`}
-              >
-
-                <div className={`relative ${viewMode === "list" ? "w-64 h-48" : "h-48"}`}>
-                  {product.images.length > 0 && (
-                    <Image
-  src={`http://localhost:4000/uploads/${product.images[0]}`}
-                      alt={product.name}
-                      fill
-                       unoptimized={true} 
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  )}
-                  
-                  {/* Badges */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    {product.discount && (
-                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">
-                        -{product.discount}%
-                      </span>
-                    )}
-                    {product.tag && (
-                      <span className="bg-primary text-background px-2 py-1 rounded-full text-xs">
-                        {product.tag}
-                      </span>
-                    )}
-                    {product.quantity <= 0 && (
-                      <span className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs">
-                        نفد المخزون
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* Actions */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => toggleWishlist(product.id)}
-                      className={`p-2 rounded-full transition-colors ${
-                        wishlist.includes(product.id)
-                          ? "bg-red-500 text-white"
-                          : "bg-white/80 hover:bg-white"
-                      }`}
-                    >
-                      <Heart className="w-4 h-4" />
-                    </button>
-                    <Link
-                        href={`/product/${product?._id.toString()  || '2'}`}
-
-                      className="p-2 bg-white/80 hover:bg-white rounded-full transition-colors"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Link>
-                    <button
-                      onClick={() => openQuickAdd(product)}
-                      className="p-2 bg-white/80 hover:bg-white rounded-full transition-colors"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                    </button>
-                  </div>
-       
-                </div>
-
-                <div className={`p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-bold line-clamp-1">{product.name}</h3>
-                    {product.showReviews && product.rating && (
-                      <RatingComponent 
-                        rating={product.rating} 
-                        reviews={product.reviews || 0} 
-                      />
-                    )}
-                  </div>
-                  
-                  {product.shortDescription && (
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {product.shortDescription}
-                    </p>
-                  )}
-                  
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-primary">
-                        {product.priceAfterDiscount} ريال
-                      </span>
-                      {product.priceBeforeDiscount && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {product.priceBeforeDiscount} ريال
+            {products.map((product, index) => {
+              const mainImage = getMainImage(product);
+              return (
+                <motion.div
+                  key={product._id || product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`bg-background border border-gray-200 rounded-xl overflow-hidden group transition-all duration-300 hover:shadow-lg hover:border-primary/30 ${
+                    viewMode === "list" ? "flex flex-col md:flex-row" : ""
+                  }`}
+                >
+                  {/* Product Image */}
+                  <div className={`relative bg-gray-50 ${viewMode === "list" ? "md:w-72 lg:w-80 h-64" : "h-60"} overflow-hidden`}>
+                    {mainImage && (
+  <Image
+    src={getImageUrl(mainImage.url)}
+    alt={product.name}
+    fill
+    unoptimized={true}
+    className="object-cover transition-transform duration-500 group-hover:scale-105"
+    quality={85}
+    onError={(e) => {
+      (e.target as HTMLImageElement).src = '/placeholder.jpg';
+    }}
+  />
+)}
+                    
+                    {/* Badges - Top Right */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                      {product.tag && (
+                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-md">
+                          {product.tag}
+                        </span>
+                      )}
+                      {product.showDiscount && product.discount && product.discount > 0 && (
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                          خصم {product.discount}%
                         </span>
                       )}
                     </div>
-                    
-                    <AddToCartButton
-                      productId={product.id}
-                      productName={product.name}
-                      disabled={product.quantity <= 0}
-                      onAddToCart={handleAddToCart}
-                    />
+
+                    {/* Short Description - Top Left */}
+                    {product.shortDescription && (
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-md">
+                          {product.shortDescription}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <button
+                        onClick={() => toggleWishlist(product._id || product.id)}
+                        className={`p-2 rounded-full shadow-md transition-all ${
+                          wishlist.includes(product._id || product.id)
+                            ? "bg-red-500 text-white animate-pulse"
+                            : "bg-white hover:bg-red-50 text-gray-700"
+                        }`}
+                      >
+                        <Heart className="w-4 h-4" />
+                      </button>
+                      <Link
+                        href={`/product/${product._id || product.id}`}
+                        className="p-2 bg-white hover:bg-blue-50 text-gray-700 rounded-full shadow-md transition-all"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <button
+                        onClick={() => openQuickAdd(product)}
+                        className={`p-2 rounded-full shadow-md transition-all ${
+                          product.quantity <= 0 
+                            ? "bg-gray-300 cursor-not-allowed" 
+                            : "bg-white hover:bg-green-50 text-gray-700"
+                        }`}
+                        disabled={product.quantity <= 0}
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  {product.showReviews && (
-                                                          <h2 className="text-red-500">hello</h2>
 
+                  {/* Product Info */}
+                  <div className={`p-5 ${viewMode === "list" ? "md:flex-1" : ""}`}>
+                    <div className="flex flex-col h-full">
+                      {/* Title and Rating */}
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-lg font-bold text-gray-800 line-clamp-2 hover:text-primary transition-colors">
+                          {product.name}
+                        </h3>
+                        {product.showReviews && product.averageRating && (
+                          <RatingComponent
+                            rating={product.averageRating}
+                            reviews={product.numberOfReviews || 0}
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Quantity Progress Bar */}
+                      {product.showQuantity && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-gray-500 flex items-center">
+                              <Package className="w-3 h-3 mr-1" />
+                              الكمية المتاحة
+                            </span>
+                            <span className={`font-medium ${
+                              product.quantity <= 5 ? 'text-red-500' : 'text-green-600'
+                            }`}>
+                              {product.quantity} وحدة
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                product.quantity <= 5 ? 'bg-red-400' : 
+                                product.quantity <= 15 ? 'bg-yellow-400' : 'bg-green-400'
+                              }`}
+                              style={{ 
+                                width: `${(product.quantity / (product.maxQuantity || 100)) * 100}%`,
+                                transition: 'width 0.5s ease-in-out'
+                              }}
+                            />
+                          </div>
+                          {product.quantity <= 5 && (
+                            <div className="text-xs text-red-500 mt-1 flex items-center">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              الكمية محدودة!
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Description */}
+                      <div className="mb-4 flex-1">
+                        {product.description && (
+                          <p className="text-gray-600 text-sm line-clamp-3">
+                            {product.description.length > 150 
+                              ? `${product.description.substring(0, 150)}...` 
+                              : product.description}
+                          </p>
+                        )}
+                      </div>
 
-                  )}
-
-                </div>
-              </motion.div>
-            ))}
+                      {/* Price and Add to Cart */}
+                      <div className="mt-auto">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            {product.priceAfterDiscount > 0 ? (
+                              <>
+                                <span className="text-xl font-bold text-primary">
+                                  {product.priceAfterDiscount.toLocaleString()} ريال
+                                </span>
+                                {product.priceBeforeDiscount && product.priceBeforeDiscount > product.priceAfterDiscount && (
+                                  <span className="text-sm text-gray-400 line-through">
+                                    {product.priceBeforeDiscount.toLocaleString()} ريال
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xl font-bold text-primary">
+                                {product.priceBeforeDiscount?.toLocaleString() || '0'} ريال
+                              </span>
+                            )}
+                          </div>
+                          
+                          <AddToCartButton
+                            productId={product._id || product.id}
+                            productName={product.name}
+                            disabled={product.quantity <= 0}
+                            onAddToCart={handleAddToCart}
+                            className={`px-4 py-2 rounded-lg text-white transition-colors ${
+                              product.quantity <= 0 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : 'bg-primary hover:bg-primary/90'
+                            }`}
+                          />
+                        </div>
+                        
+                        {/* Rating at bottom for grid view */}
+                        {product.showReviews && viewMode === "grid" && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <RatingComponent 
+                              rating={product.averageRating!}
+                              reviews={product.numberOfReviews!}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
